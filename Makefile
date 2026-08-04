@@ -1,5 +1,6 @@
 SRC		= main.cpp \
-			Server.cpp
+			Server.cpp \
+			client.cpp
 OBJ		= $(SRC:.cpp=.o)
 DEP		= $(SRC:.cpp=.d)
 

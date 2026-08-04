@@ -67,6 +67,7 @@ void    Server::run ( void )
         for (unsigned int i = 0; i < toRemove_.size(); i++)
         {
             int fd = toRemove_[i];
+            Clients_[fd]._in_buffer.erase();
             close(fd);
             std::cout << "client disconnected\tfd = " << fd << std::endl;
             for (unsigned int j = 0; j < pollfds_.size(); j++)
@@ -106,23 +107,35 @@ void                Server::acceptNewClient( void )
     new_fd.events = POLLIN;
     pollfds_.push_back(new_fd);
 
-    // Clients_[fd] = Client(fd, inet_ntoa(addr.sin_addr));
+    Clients_[fd] = Client(fd);
     std::cout << "new client fd = " << fd << "\taddr_ = " << inet_ntoa(addr.sin_addr) << std::endl;
 }
 
 void                Server::handleClientData( int fd )
 {
     char    buffer[2048];
+    std::memset(buffer, 0, 2048);
 
     ssize_t bytes = recv(fd, buffer, 2048, 0);
 
+    std::string buff(buffer);
+    std::cout << "client fd(" << fd << ") buffer_in += " << buff << std::endl;
+
     if (bytes == 0) {toRemove_.push_back(fd);}
-    if (bytes > 0) std::cout << buffer << std::endl;
+    if (bytes > 0)  Clients_[fd]._in_buffer += buffer; 
     if (bytes == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
         std::cout << "recv failed" << std::endl;
         return ;
+    }
+
+    size_t  pos;
+    if ((pos = Clients_[fd]._in_buffer.find("\r\n")) != std::string::npos)
+    {
+        std::string line = Clients_[fd]._in_buffer.substr(0, pos + 2);
+        Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + 2, Clients_[fd]._in_buffer.size() - (pos + 2));
+        std::cout << "client fd(" << fd << ") : " << line << std::endl;
     }
 }
 

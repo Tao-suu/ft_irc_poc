@@ -12,12 +12,13 @@ class Client
         std::string _username;
 
         
-
     public:
-	    Client(){};
+        std::string _in_buffer;
+
+	    Client( int fd = 0 );
         Client(const Client &src);
         Client &operator = (const Client &src);
-        ~Client(){};
+        ~Client();
 
 	    int     GetFd(){return _fd;}
         std::string  GetIP(){return _IP;}
