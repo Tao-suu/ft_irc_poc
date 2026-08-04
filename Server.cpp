@@ -34,6 +34,39 @@ void    Server::init( void )
     if (listen(servFd_, SOMAXCONN) == -1) throw Server::ServerException("Server initialision: " + std::string(std::strerror(errno)));
 }
 
+void    Server::run ( void )
+{
+    pollfd  fd0;
+    fd0.fd = servFd_;
+    fd0.events = POLLIN;
+    fd0.revents = 0;
+
+    pollfds_.push_back(fd0);
+
+    while (1)
+    {
+        // errno = 0;
+        int ret = poll(&pollfds_[0], pollfds_.size(), -1);
+        if (ret == -1)
+        {
+            if (errno == EINTR) continue;
+            else break;
+        }
+
+        for (int i = 0; i < pollfds_.size(); i++)
+        {
+            if (pollfds_[i].revents == 0) continue;     //  le client/serveur n'a fait aucun action ou recu aucune acction
+            
+            if (pollfds_[i].fd == servFd_ && pollfds_[i].revents == POLLIN) {}     // Le serveur recoit un nouveau client
+
+            else {
+                if (pollfds_[i].revents & (POLLIN | POLLERR)) {}   // Supprimer le client
+                else if (pollfds_[i].revents & POLLIN) {}   // Recuperer les donnees
+            }
+        }
+    }
+}
+
 
 int                 Server::get_port( void ) const {return port_;}
 const std::string&  Server::get_password( void ) const {return pass_;}

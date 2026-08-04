@@ -16,6 +16,7 @@
 #include <iostream>
 
 typedef struct sockaddr_in sockaddr_in;
+typedef struct pollfd pollfd;
 
 class Server
 {
@@ -26,6 +27,7 @@ public:
     ~Server();
 
     void    init( void );
+    void    run ( void );
 
     int                 get_port( void ) const;
     const std::string&  get_password( void ) const;
@@ -36,6 +38,8 @@ private:
 
     int             servFd_;
     sockaddr_in     addr_;
+
+    std::vector<pollfd> pollfds_;
 
     Server( void );
 
