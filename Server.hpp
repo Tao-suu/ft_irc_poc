@@ -10,6 +10,10 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstring>
+#include <cerrno>
+
+#include <iostream>
 
 typedef struct sockaddr_in sockaddr_in;
 
@@ -23,6 +27,9 @@ public:
 
     void    init( void );
 
+    int                 get_port( void ) const;
+    const std::string&  get_password( void ) const;
+
 private:
     int             port_;
     std::string     pass_;
@@ -31,4 +38,16 @@ private:
     sockaddr_in     addr_;
 
     Server( void );
+
+public:
+    class ServerException: public std::exception
+    {
+        std::string message_;
+    public:
+        ServerException( const std::string& message );
+        const char* what() const throw();
+        ~ServerException() throw();
+    };
 };
+
+std::ostream&    operator<<(std::ostream& os, const Server& s);
