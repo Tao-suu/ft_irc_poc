@@ -9,18 +9,18 @@ class Client
         std::string _username;
 
     public:
-	    Client(){};
+	    Client();
         Client(const Client &src);
         Client &operator = (const Client &src);
-        ~Client(){};
+        ~Client();
 
-	    int     GetFd(){return _fd;}
-        std::string  GetIP(){return _IP;}
-        std::string  GetNickname(){return _nickname;}
-        std::string  GetUsername(){return _username;}
+	    int          GetFd();
+        std::string  GetIP();
+        std::string  GetNickname();
+        std::string  GetUsername();
 
-	    void    SetFd(int fd){_fd = fd;}
-	    void    SetIpAdd(std::string IP){_IP = IP;}
-        void    SetNickname(std::string nickname){_nickname = nickname;}
-        void    SetUsername(std::string username){_username = username;}
+	    void    SetFd(int fd);
+	    void    SetIpAdd(std::string IP);
+        void    SetNickname(std::string nickname);
+        void    SetUsername(std::string username);
 };
