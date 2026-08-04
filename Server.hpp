@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -12,8 +13,9 @@
 #include <unistd.h>
 #include <cstring>
 #include <cerrno>
-
 #include <iostream>
+
+#include "client.hpp"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
@@ -31,6 +33,10 @@ public:
 
     int                 get_port( void ) const;
     const std::string&  get_password( void ) const;
+    const std::string   get_ip( void ) const;
+
+    void                acceptNewClient( void );
+    void                handleClientData( int fd );
 
 private:
     int             port_;
@@ -39,7 +45,9 @@ private:
     int             servFd_;
     sockaddr_in     addr_;
 
-    std::vector<pollfd> pollfds_;
+    std::vector<pollfd>     pollfds_;
+    std::vector<int>        toRemove_;
+    std::map<int, Client>   Clients_;
 
     Server( void );
 

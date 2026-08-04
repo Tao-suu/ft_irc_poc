@@ -28,7 +28,7 @@ void    Server::init( void )
 
     addr_.sin_family = AF_INET;
     addr_.sin_port = htons(port_);
-    addr_.sin_addr.s_addr = INADDR_ANY;
+    addr_.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(servFd_, (struct sockaddr*)&addr_, sizeof(addr_)) == -1) throw Server::ServerException("Server initialision: " + std::string(std::strerror(errno)));
 
     if (listen(servFd_, SOMAXCONN) == -1) throw Server::ServerException("Server initialision: " + std::string(std::strerror(errno)));
@@ -53,23 +53,36 @@ void    Server::run ( void )
             else break;
         }
 
-        for (int i = 0; i < pollfds_.size(); i++)
+        for (unsigned int i = 0; i < pollfds_.size(); i++)
         {
             if (pollfds_[i].revents == 0) continue;     //  le client/serveur n'a fait aucun action ou recu aucune acction
             
-            if (pollfds_[i].fd == servFd_ && pollfds_[i].revents == POLLIN) {}     // Le serveur recoit un nouveau client
+            if (pollfds_[i].fd == servFd_ && pollfds_[i].revents == POLLIN) { acceptNewClient(); }     // Le serveur recoit un nouveau client
 
             else {
-                if (pollfds_[i].revents & (POLLIN | POLLERR)) {}   // Supprimer le client
-                else if (pollfds_[i].revents & POLLIN) {}   // Recuperer les donnees
+                if (pollfds_[i].revents & (POLLHUP | POLLERR)) { toRemove_.push_back(pollfds_[i].fd); }   // Supprimer le client
+                else if (pollfds_[i].revents & POLLIN) { handleClientData(pollfds_[i].fd); }   // Recuperer les donnees
             }
         }
+        for (unsigned int i = 0; i < toRemove_.size(); i++)
+        {
+            int fd = toRemove_[i];
+            close(fd);
+            std::cout << "client disconnected\tfd = " << fd << std::endl;
+            for (unsigned int j = 0; j < pollfds_.size(); j++)
+            {
+                if (pollfds_[j].fd == fd) pollfds_.erase(pollfds_.begin() + j);
+                break;
+            }
+        }
+        toRemove_.clear();            
     }
 }
 
 
 int                 Server::get_port( void ) const {return port_;}
 const std::string&  Server::get_password( void ) const {return pass_;}
+const std::string   Server::get_ip( void ) const { return std::string(inet_ntoa(addr_.sin_addr)); }
 
 
 std::ostream&   operator<<(std::ostream& os, const Server& s)
@@ -78,6 +91,40 @@ std::ostream&   operator<<(std::ostream& os, const Server& s)
     return os;
 }
 
+
+void                Server::acceptNewClient( void )
+{
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+
+    int fd = accept(servFd_, (struct sockaddr*)&addr, &len);
+    if (fd == -1) return;
+
+    pollfd new_fd;
+    new_fd.fd = fd;
+    new_fd.revents = 0;
+    new_fd.events = POLLIN;
+    pollfds_.push_back(new_fd);
+
+    // Clients_[fd] = Client(fd, inet_ntoa(addr.sin_addr));
+    std::cout << "new client fd = " << fd << "\taddr_ = " << inet_ntoa(addr.sin_addr) << std::endl;
+}
+
+void                Server::handleClientData( int fd )
+{
+    char    buffer[2048];
+
+    ssize_t bytes = recv(fd, buffer, 2048, 0);
+
+    if (bytes == 0) {toRemove_.push_back(fd);}
+    if (bytes > 0) std::cout << buffer << std::endl;
+    if (bytes == -1)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
+        std::cout << "recv failed" << std::endl;
+        return ;
+    }
+}
 
 
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
