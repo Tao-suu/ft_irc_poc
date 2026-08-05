@@ -19,5 +19,3 @@ int main( void )
     
     std::cout << server.get_ip() << std::endl;
 }
-
-

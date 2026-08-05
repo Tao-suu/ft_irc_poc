@@ -93,7 +93,7 @@ void Channel::RemoveOperator(Client *client)
         _Clients.erase(std::find(_Operators.begin(), _Operators.end(), client));
 }
 
-bool IsAnOperator(Client *client)
+bool Channel::IsAnOperator(Client *client)
 {
     if ((std::find(_Operators.begin(), _Operators.end(), client)) == _Operators.end())
         return false;
@@ -109,7 +109,7 @@ void Channel::SetUserLimit(unsigned int limit)
 
 void Channel::RemoveUserLimit()
 {
-   if(Channel::HasAnUserLimit)
+   if(Channel::HasAnUserLimit())
     _UserLimit = 0;
     //trow
     //mode
