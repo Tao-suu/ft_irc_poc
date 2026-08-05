@@ -27,3 +27,7 @@
 ## BONUS
 - Bot 
 - File transfert
+
+# Ressources
+https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b Tuto ft_irc about channel
+
