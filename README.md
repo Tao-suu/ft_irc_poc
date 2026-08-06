@@ -23,6 +23,12 @@
 - Invite
 - Topic
 - Mode (i, t, k, o, l)
+  - i = invite only
+  - t = topic
+  - k = key (password)
+  - o = operator
+  - l = user limit
+
 
 ## BONUS
 - Bot 
