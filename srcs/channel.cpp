@@ -46,21 +46,13 @@ std::string Channel::getTopic() const
 
 void Channel::AddClient(Client *client)
 {
-    if (_UserLimit != 0 && _Clients.size() >= _UserLimit)
-        throw UserLimitException();
     _Clients.push_back(client);
     std::cout << client->GetUsername() << "is added to the channel" << std::endl;
 }
 void Channel::RemoveClient(Client *client)
 {
-    if (!Channel::IsClientOnTheList(client))
-        throw NotAnUserException();
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
     std::cout << client->GetUsername() << "is removed to the channel" << std::endl;
-    if (Channel::IsClientOnTheListInvitation(client))
-        _Invitation.erase(std::find(_Clients.begin(), _Clients.end(), client));
-    if (Channel::IsAnOperator(client))
-        _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client)); 
 }
 
 bool Channel::IsClientOnTheList(Client *client) const
@@ -72,15 +64,11 @@ bool Channel::IsClientOnTheList(Client *client) const
 
 void Channel::AddClientInvitation(Client *client)
 {
-    if (Channel::IsClientOnTheList(client))
-        throw IsAnUserException();
     _Invitation.push_back(client);
     std::cout << "An invitation was send to " << client->GetUsername() << std::endl;
 }
 void Channel::RemoveClientInvitation(Client *client)
 {
-    if (!Channel::IsClientOnTheListInvitation(client))
-        throw NotInvitationListException();
     _Invitation.erase(std::find(_Clients.begin(), _Clients.end(), client));
     std::cout << client->GetUsername() << "is remove from the invitation list" << std::endl;
 }
@@ -99,18 +87,13 @@ void Channel::SetModeInviteOnlyMode()
 
 void Channel::SetOperator(Client *client)
 {
-    if (Channel::IsClientOnTheList(client))
-        throw IsAnUserException();
     _Operators.push_back(client);
     std::cout << client->GetUsername() << "is now an operator" << std::endl;
 }
 void Channel::RemoveOperator(Client *client)
 {
-    if (!Channel::IsAnOperator(client))
-        throw NotAnOperatorException();
     _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
     std::cout << client->GetUsername() << "is no longer an operator" << std::endl;
-
 }
 
 bool Channel::IsAnOperator(Client *client)
@@ -135,8 +118,6 @@ void Channel::SetUserLimit(unsigned int limit)
 
 void Channel::RemoveUserLimit()
 {
-    if(Channel::HasAnUserLimit())
-        throw NoUserLimitException();
     _UserLimit = 0;
     std::cout << "The channel has no longer an user limit" << std::endl;
     _ModeUserLimit = false;
@@ -160,8 +141,6 @@ void Channel::SetKey(std::string key)
 
 void Channel::RemoveKey()
 {
-    if (!Channel::HasAnKey())
-        throw NoKeyException();
     _Key = "";
     std::cout << "The password is removed" << std::endl;
     _ModeKey = false;
@@ -182,8 +161,6 @@ void Channel::SetTopic(std::string topic)
 }
 void Channel::RemoveTopic()
 {
-    if(!HasAnTopic())
-        throw NoTopicException();
     _Topic = "";
     std::cout << "The topic was removed" << std::endl;
     _ModeTopic = false;
