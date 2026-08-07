@@ -44,33 +44,87 @@ std::string Channel::getTopic() const
     return(_Topic);
 }
 
+void Channel::JoinChannel(Client *client)
+{
+    if (IsClientInChannel(client))
+    {
+        if (!_ModeInviteOnly)
+        {
+            if (_ModeUserLimit || _Clients.size() < _UserLimit)
+                AddClient(client);
+            throw UserLimitException();
+        }
+        else
+        {
+            if (Channel::IsClientOnTheListInvitation(client))
+            {
+                if (!_ModeUserLimit || _Clients.size() < _UserLimit)
+                    AddClient(client);
+                throw UserLimitException();
+            }
+            throw NotInvitationListException();
+        }
+    }
+    throw IsAnUserException();
+}
+
 void Channel::AddClient(Client *client)
 {
     _Clients.push_back(client);
-    std::cout << client->GetUsername() << "is added to the channel" << std::endl;
+    std::cout << client->GetUsername() << "join the channel" << std::endl;
 }
-void Channel::RemoveClient(Client *client)
+
+void Channel::ExitChannel(Client *client)
 {
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
     std::cout << client->GetUsername() << "is removed to the channel" << std::endl;
+    if (IsAnOperator(client))
+        RemoveOperator(client);
 }
 
-bool Channel::IsClientOnTheList(Client *client) const
+void Channel::KickClient(Client *client, Client *user)
+{
+    if (IsAnOperator(client))
+    {
+        if (!IsClientOnTheListInvitation(user))
+            throw NotAnUserException();
+        ExitChannel(client);
+    }
+    //only see by the user
+    throw NotAnOperatorException();
+}
+
+bool Channel::IsClientInChannel(Client *client) const
 {
     if ((std::find(_Clients.begin(), _Clients.end(), client)) == _Clients.end())
         return false;
     return true;
 }
 
-void Channel::AddClientInvitation(Client *client)
+void Channel::InvitClient(Client *client, Client *user)
 {
-    _Invitation.push_back(client);
-    std::cout << "An invitation was send to " << client->GetUsername() << std::endl;
+    if (IsAnOperator(client))
+    {
+        if (IsClientOnTheListInvitation(user))
+            throw IsAnUserException();
+        _Invitation.push_back(client);
+        throw InvitationSendException();
+    }
+    //only see by the client
+    throw NotAnOperatorException();
 }
-void Channel::RemoveClientInvitation(Client *client)
+
+void Channel::RemoveClientInvitation(Client *client, Client *user)
 {
-    _Invitation.erase(std::find(_Clients.begin(), _Clients.end(), client));
-    std::cout << client->GetUsername() << "is remove from the invitation list" << std::endl;
+    if (IsAnOperator(client))
+    {
+        if (!IsClientOnTheListInvitation(user))
+            throw NotAnUserException();
+        _Invitation.erase(std::find(_Clients.begin(), _Clients.end(), client));
+        throw RemoveFromInvitationException();
+    }
+    //only see by the client
+    throw NotAnOperatorException();
 }
 
 bool Channel::IsClientOnTheListInvitation(Client *client) const
@@ -80,13 +134,27 @@ bool Channel::IsClientOnTheListInvitation(Client *client) const
     return true;
 }
 
-void Channel::SetModeInviteOnlyMode()
+void Channel::SetInviteOnlyMode(Client *client)
 {
-    _ModeInviteOnly = true;
+    if (IsAnOperator(client))
+    {
+        if(_ModeInviteOnly)
+            throw ModeOnException();
+        _ModeInviteOnly = true;
+    }
+     //only see by the client
+    throw NotAnOperatorException();
 }
 
-void Channel::SetOperator(Client *client)
+void Channel::GiveOperatorPrivilege(Client *client, Client *user)
 {
+    if (IsAnOperator(client))
+    {
+        
+    }
+     //only see by the client
+    throw NotAnOperatorException();
+
     _Operators.push_back(client);
     std::cout << client->GetUsername() << "is now an operator" << std::endl;
 }
@@ -109,66 +177,66 @@ void Channel::SetOperatorMode()
 }
 
 
-void Channel::SetUserLimit(unsigned int limit)
-{
-    _UserLimit = limit;
-    std::cout << "The channel is now limited to " << limit << " user" << std::endl;
-    _ModeUserLimit = true;
-}
+// void Channel::SetUserLimit(unsigned int limit)
+// {
+//     _UserLimit = limit;
+//     std::cout << "The channel is now limited to " << limit << " user" << std::endl;
+//     _ModeUserLimit = true;
+// }
 
-void Channel::RemoveUserLimit()
-{
-    _UserLimit = 0;
-    std::cout << "The channel has no longer an user limit" << std::endl;
-    _ModeUserLimit = false;
-}
+// void Channel::RemoveUserLimit()
+// {
+//     _UserLimit = 0;
+//     std::cout << "The channel has no longer an user limit" << std::endl;
+//     _ModeUserLimit = false;
+// }
 
-bool Channel::HasAnUserLimit()
-{
-    if (_UserLimit == 0)
-        return false;
-    return true;
-}
+// bool Channel::HasAnUserLimit()
+// {
+//     if (_UserLimit == 0)
+//         return false;
+//     return true;
+// }
 
-void Channel::SetKey(std::string key)
-{
-    _Key = key;
-    if (Channel::HasAnKey())
-        throw HasAnKeyException();
-    std::cout << "The channel has now a password" << std::endl;
-    _ModeKey = true;
-}
+// void Channel::SetKey(std::string key)
+// {
+//     _Key = key;
+//     if (Channel::HasAnKey())
+//         throw HasAnKeyException();
+//     std::cout << "The channel has now a password" << std::endl;
+//     _ModeKey = true;
+// }
 
-void Channel::RemoveKey()
-{
-    _Key = "";
-    std::cout << "The password is removed" << std::endl;
-    _ModeKey = false;
-}
+// void Channel::RemoveKey()
+// {
+//     _Key = "";
+//     std::cout << "The password is removed" << std::endl;
+//     _ModeKey = false;
+// }
 
-bool Channel::HasAnKey()
-{
-    if (_Key == "")
-        return false;
-    return true;
-}
+// bool Channel::HasAnKey()
+// {
+//     if (_Key == "")
+//         return false;
+//     return true;
+// }
 
-void Channel::SetTopic(std::string topic)
-{
-    _Topic = topic;
-    std::cout << "The topic of the channel is"<< topic << std::endl;
-    _ModeTopic = true;
-}
-void Channel::RemoveTopic()
-{
-    _Topic = "";
-    std::cout << "The topic was removed" << std::endl;
-    _ModeTopic = false;
-}
+// void Channel::SetTopic(std::string topic)
+// {
+//     _Topic = topic;
+//     std::cout << "The topic of the channel is"<< topic << std::endl;
+//     _ModeTopic = true;
+// }
+// void Channel::RemoveTopic()
+// {
+//     _Topic = "";
+//     std::cout << "The topic was removed" << std::endl;
+//     _ModeTopic = false;
+// }
 
-bool Channel::HasAnTopic()
-{
-    if (_Topic != "");
-        return false;
-    return true;
-}
+// bool Channel::HasAnTopic()
+// {
+//     if (_Topic != "");
+//         return false;
+//     return true;
+// }

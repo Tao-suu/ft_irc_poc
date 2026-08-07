@@ -6,6 +6,9 @@
 #include <vector>
 #include <algorithm>
 
+//when message for channel and for user
+//remove 
+
 class Channel
 {
     private :
@@ -39,16 +42,18 @@ class Channel
         std::string             getKey() const;
         std::string             getTopic() const;
 
+        void JoinChannel(Client *client);
         void AddClient(Client *client);
-        void RemoveClient(Client *client);
-        bool IsClientOnTheList(Client *client) const;
+        void ExitChannel(Client *client);
+        void KickClient(Client *operators, Client *client);
+        bool IsClientInChannel(Client *client) const;
 
-        void AddClientInvitation(Client *client);
-        void RemoveClientInvitation(Client *client);
+        void InvitClient(Client *client, Client *user);
+        void RemoveClientInvitation(Client *client, Client *user);
         bool IsClientOnTheListInvitation(Client *client) const;
-        void SetModeInviteOnlyMode();
+        void SetInviteOnlyMode(Client *client);
 
-        void SetOperator(Client *client);
+        void GiveOperatorPrivilege(Client *client, Client *user);
         void RemoveOperator(Client *client);
         bool IsAnOperator(Client *client);
         void SetOperatorMode();
@@ -69,19 +74,19 @@ class Channel
 class UserLimitException : public std::exception
 {
     public:
-        virtual const char * what() const throw() {return ("The user limit is reached on this channel, it can be added");}
+        virtual const char * what() const throw() {return ("The user limit is reached on this channel, you can join it");}
 };
 
 class NotAnUserException : public std::exception
 {
     public:
-        virtual const char * what() const throw() {return ("The user is not a member of this channel, it can be removed");}
+        virtual const char * what() const throw() {return ("The user is not a member of this channel, you cannot execute this command");}
 };
 
 class NotInvitationListException : public std::exception
 {
     public:
-        virtual const char * what() const throw() {return ("The user is not on the invitation list, it can be removed");}
+        virtual const char * what() const throw() {return ("You need an invitation to join this channel");}
 };
 
 class IsAnUserException : public std::exception
@@ -90,10 +95,28 @@ class IsAnUserException : public std::exception
         virtual const char * what() const throw() {return ("The user is already a member of this channel");}
 };
 
+class InvitationSendException : public std::exception
+{
+    public:
+        virtual const char * what() const throw() {return ("The invitation is send");}
+};
+
+class RemoveFromInvitationException : public std::exception
+{
+    public:
+        virtual const char * what() const throw() {return ("The user is removed to the invitation list");}
+};
+
 class NotAnOperatorException : public std::exception
 {
     public:
-        virtual const char * what() const throw() {return ("The user is not an operator, it can be removed");}
+        virtual const char * what() const throw() {return ("You need to be an operator to execute this command");}
+};
+
+class ModeOnException : public std::exception
+{
+    public:
+        virtual const char * what() const throw() {return ("The mode is already actived");}
 };
 
 class NoUserLimitException : public std::exception
