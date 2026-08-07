@@ -6,8 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-//when message for channel and for user
-//remove 
+//what the operator mode ??
 
 class Channel
 {
@@ -15,7 +14,7 @@ class Channel
         std::string             _Name;
 
         std::vector<Client*>     _Clients;
-        std::vector<Client*>     _Invitation;
+        std::vector<Client*>     _Invitations;
         std::vector<Client*>     _Operators;
         unsigned int            _UserLimit;
         std::string             _Key;
@@ -35,8 +34,8 @@ class Channel
         ~Channel();
 
         std::string             getName() const;
-        std::vector<Client*>    getListClient() const;
-        std::vector<Client*>    getListInvitation() const;
+        std::vector<Client*>    getClients() const;
+        std::vector<Client*>    getInvitedClients() const;
         std::vector<Client*>    getOperators() const;
         unsigned int            getUserLimit() const;
         std::string             getKey() const;
@@ -49,14 +48,14 @@ class Channel
         bool IsClientInChannel(Client *client) const;
 
         void InvitClient(Client *client, Client *user);
-        void RemoveClientInvitation(Client *client, Client *user);
-        bool IsClientOnTheListInvitation(Client *client) const;
+        void RemoveInvitedClient(Client *client, Client *user);
+        bool IsClientInvited(Client *client) const;
         void SetInviteOnlyMode(Client *client);
 
         void GiveOperatorPrivilege(Client *client, Client *user);
-        void RemoveOperator(Client *client);
+        void RemoveOperator(Client *client, Client *user);
         bool IsAnOperator(Client *client);
-        void SetOperatorMode();
+        void SetOperatorMode(Client *client);
 
         void SetUserLimit(unsigned int limit);
         void RemoveUserLimit();
@@ -71,74 +70,8 @@ class Channel
         bool HasAnTopic();
 };
 
-class UserLimitException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The user limit is reached on this channel, you can join it");}
-};
-
-class NotAnUserException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The user is not a member of this channel, you cannot execute this command");}
-};
-
-class NotInvitationListException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("You need an invitation to join this channel");}
-};
-
-class IsAnUserException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The user is already a member of this channel");}
-};
-
-class InvitationSendException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The invitation is send");}
-};
-
-class RemoveFromInvitationException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The user is removed to the invitation list");}
-};
-
-class NotAnOperatorException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("You need to be an operator to execute this command");}
-};
-
-class ModeOnException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The mode is already actived");}
-};
-
-class NoUserLimitException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("There is no user limit to remove");}
-};
-
-class HasAnKeyException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("The passord is modified");}
-};
-
-class NoKeyException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("There is no passord to remove");}
-};
-
-class NoTopicException : public std::exception
-{
-    public:
-        virtual const char * what() const throw() {return ("There is no topic to remove");}
-};
+// class UserLimitException : public std::exception
+// {
+//     public:
+//         virtual const char * what() const throw() {return ("The user limit is reached on this channel, you can join it");}
+// };
