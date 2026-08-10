@@ -6,8 +6,6 @@
 #include <vector>
 #include <algorithm>
 
-//what the operator mode ??
-
 class Channel
 {
     private :
@@ -57,21 +55,15 @@ class Channel
         bool IsAnOperator(Client *client);
         void SetOperatorMode(Client *client);
 
-        void SetUserLimit(unsigned int limit);
-        void RemoveUserLimit();
-        bool HasAnUserLimit();
+        void SetUserLimitMode(Client *client);
+        void SetUserLimit(Client *client, unsigned int limit);
+        void RemoveUserLimitMode(Client *client);
 
-        void SetKey(std::string key);
-        void RemoveKey();
-        bool HasAnKey();
-
-        void SetTopic(std::string Topic);
-        void RemoveTopic();
-        bool HasAnTopic();
+        void SetKeyMode(Client *client);
+        void SetKey(Client *client, std::string key);
+        void RemoveKeyMode(Client *client);
+       
+        void SetTopicMode(Client *client);
+        void SetTopic(Client *client, std::string topic);
+        void RemoveTopicMode(Client *client);
 };
-
-// class UserLimitException : public std::exception
-// {
-//     public:
-//         virtual const char * what() const throw() {return ("The user limit is reached on this channel, you can join it");}
-// };

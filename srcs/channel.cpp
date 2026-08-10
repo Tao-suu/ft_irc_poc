@@ -87,7 +87,7 @@ void Channel::ExitChannel(Client *client)
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
     MessageClient(client, "You left the channel");
     if (IsAnOperator(client))
-        RemoveOperator(client);
+         _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
     std::cout << client->GetUsername() << "left the channel" << std::endl;
 }
 
@@ -223,72 +223,156 @@ void Channel::SetOperatorMode(Client *client)
         else
             MessageClient(client, "The channel is already on Operator Mode");
     }
-    MessageClient(client, "You need the operator privilege to use this commande");
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
+void Channel::SetUserLimitMode(Client *client)
+{
+    if (IsAnOperator(client))
+    {
+        if (!_ModeUserLimit)
+        {
+           std::cout << "The channel is now on User Limit Mode"<<std::endl;
+            _ModeUserLimit = true;
+        }
+        else
+            MessageClient(client, "The channel is already on User Limit Mode");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
+}
+
+//decide of a limit max ? + parsing -> need integer as params
 void Channel::SetUserLimit(Client *client, unsigned int limit)
 {
     if (IsAnOperator(client))
     {
-        _UserLimit = limit;
-        std::cout << "The channel is now limited to " << limit << " user" << std::endl;
-        _ModeUserLimit = true;
+        if (!_ModeUserLimit)
+           MessageClient(client, "The channel is not on User Limit Mode");
+        else
+        {
+            std::cout << "The channel has now a limit of " << limit << " users";
+            _UserLimit = limit;
+        }
     }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-void Channel::RemoveUserLimit()
+void Channel::RemoveUserLimitMode(Client *client)
 {
-    _UserLimit = 0;
-    std::cout << "The channel has no longer an user limit" << std::endl;
-    _ModeUserLimit = false;
+    if (IsAnOperator(client))
+    {
+        if (_ModeUserLimit)
+        {
+           std::cout << "The channel is not on User Limit Mode anymore"<<std::endl;
+            _ModeUserLimit = false;
+            _UserLimit = 0;
+        }
+        else
+            MessageClient(client, "The channel is not on UserLimit Mode, you can remove it");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-bool Channel::HasAnUserLimit()
+void Channel::SetKeyMode(Client *client)
 {
-    if (_UserLimit == 0)
-        return false;
-    return true;
+    if (IsAnOperator(client))
+    {
+        if (!_ModeKey)
+        {
+           std::cout << "The channel is now on Key Mode"<<std::endl;
+            _ModeKey = true;
+        }
+        else
+            MessageClient(client, "The channel is already on Key Mode");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-void Channel::SetKey(std::string key)
+//params for key (size, need letters and number ?)
+void Channel::SetKey(Client *client, std::string key)
 {
-    _Key = key;
-    if (Channel::HasAnKey())
-        throw HasAnKeyException();
-    std::cout << "The channel has now a password" << std::endl;
-    _ModeKey = true;
+   if (IsAnOperator(client))
+    {
+        if (!_ModeKey)
+           MessageClient(client, "The channel is not on User Limit Mode");
+        else
+        {
+            std::cout << "The channel has now a key" << std::endl;
+            _Key = key;
+        }
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-void Channel::RemoveKey()
+void Channel::RemoveKeyMode(Client *client)
 {
-    _Key = "";
-    std::cout << "The password is removed" << std::endl;
-    _ModeKey = false;
+    if (IsAnOperator(client))
+    {
+        if (_ModeKey)
+        {
+           std::cout << "The channel is not on Key Mode anymore"<<std::endl;
+            _ModeKey = false;
+            _Key = "";
+        }
+        else
+            MessageClient(client, "The channel is not on Key Mode, you can not remove it");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-bool Channel::HasAnKey()
+void Channel::SetTopicMode(Client *client)
 {
-    if (_Key == "")
-        return false;
-    return true;
+    if (IsAnOperator(client))
+    {
+        if (!_ModeTopic)
+        {
+           std::cout << "The channel is now on Topic Mode"<<std::endl;
+            _ModeTopic = true;
+        }
+        else
+            MessageClient(client, "The channel is already on Topic Mode");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-void Channel::SetTopic(std::string topic)
+//params for topic (size of the string)
+void Channel::SetTopic(Client *client, std::string topic)
 {
-    _Topic = topic;
-    std::cout << "The topic of the channel is"<< topic << std::endl;
-    _ModeTopic = true;
-}
-void Channel::RemoveTopic()
-{
-    _Topic = "";
-    std::cout << "The topic was removed" << std::endl;
-    _ModeTopic = false;
+   if (IsAnOperator(client))
+    {
+        if (!_ModeTopic)
+           MessageClient(client, "The channel is not on Topic Mode");
+        else
+        {
+            std::cout << "The Topic of the channel is now "<< topic << std::endl;
+            _Topic = topic;
+        }
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-bool Channel::HasAnTopic()
+void Channel::RemoveTopicMode(Client *client)
 {
-    if (_Topic != "");
-        return false;
-    return true;
+    if (IsAnOperator(client))
+    {
+        if (_ModeTopic)
+        {
+           std::cout << "The channel is not on Topic Mode anymore"<<std::endl;
+            _ModeTopic = false;
+            _Topic = "";
+        }
+        else
+            MessageClient(client, "The channel is not on Topic Mode, you can not remove it");
+    }
+    else
+        MessageClient(client, "You need the operator privilege to use this commande");
 }
