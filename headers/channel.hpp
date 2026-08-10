@@ -67,3 +67,5 @@ class Channel
         void SetTopic(Client *client, std::string topic);
         void RemoveTopicMode(Client *client);
 };
+
+void MessageClient(Client *client, std::string message);
