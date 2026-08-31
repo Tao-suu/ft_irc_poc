@@ -131,14 +131,22 @@ void                Server::handleClientData( int fd )
     }
 
     size_t  pos;
-    if ((pos = Clients_[fd]._in_buffer.find("\r\n")) != std::string::npos)
+    // if ((pos = Clients_[fd]._in_buffer.find("\r\n")) != std::string::npos)
+    if ((pos = Clients_[fd]._in_buffer.find("\n")) != std::string::npos)
     {
-        std::string line = Clients_[fd]._in_buffer.substr(0, pos + 2);
-        Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + 2, Clients_[fd]._in_buffer.size() - (pos + 2));
+        std::string line = Clients_[fd]._in_buffer.substr(0, pos);
+        Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + 1, Clients_[fd]._in_buffer.size() - (pos + 1));
         std::cout << "client fd(" << fd << ") : " << line << std::endl;
+		if (!cv.validateContent(line))
+			return ;
+		Message	msg = cv.parseContent(line);
+		exec(msg);
     }
 }
-
+void				Server::exec(Message &msg)
+{
+	std::cout << msg << std::endl;
+}
 
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
 const char* Server::ServerException::what() const throw() {return message_.c_str();}

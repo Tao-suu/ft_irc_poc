@@ -6,7 +6,7 @@
 /*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 16:44:19 by picheval          #+#    #+#             */
-/*   Updated: 2026/08/03 20:05:52 by picheval         ###   ########.fr       */
+/*   Updated: 2026/08/31 16:04:31 by picheval         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,32 +121,32 @@ Validator::Validator(void)
 	this->char_masks[94] = C_TAG_VALUE | C_PARAM_VALUE;	// ^
 	this->char_masks[95] = C_TAG_VALUE | C_PARAM_VALUE;	// _
 	this->char_masks[96] = C_TAG_VALUE | C_PARAM_VALUE;	// `
-	this->char_masks[97] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// a
-	this->char_masks[98] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// b
-	this->char_masks[99] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// c
-	this->char_masks[100] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// d
-	this->char_masks[101] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// e
-	this->char_masks[102] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// f
-	this->char_masks[103] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// g
-	this->char_masks[104] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// h
-	this->char_masks[105] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// i
-	this->char_masks[106] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// j
-	this->char_masks[107] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// k
-	this->char_masks[108] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// l
-	this->char_masks[109] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// m
-	this->char_masks[110] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// n
-	this->char_masks[111] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// o
-	this->char_masks[112] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// p
-	this->char_masks[113] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// q
-	this->char_masks[114] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// r
-	this->char_masks[115] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// s
-	this->char_masks[116] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// t
-	this->char_masks[117] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// u
-	this->char_masks[118] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// v
-	this->char_masks[119] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// w
-	this->char_masks[120] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// x
-	this->char_masks[121] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// y
-	this->char_masks[122] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE;	// z
+	this->char_masks[97] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// a
+	this->char_masks[98] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// b
+	this->char_masks[99] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// c
+	this->char_masks[100] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// d
+	this->char_masks[101] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// e
+	this->char_masks[102] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// f
+	this->char_masks[103] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// g
+	this->char_masks[104] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// h
+	this->char_masks[105] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// i
+	this->char_masks[106] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// j
+	this->char_masks[107] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// k
+	this->char_masks[108] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// l
+	this->char_masks[109] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// m
+	this->char_masks[110] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// n
+	this->char_masks[111] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// o
+	this->char_masks[112] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// p
+	this->char_masks[113] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// q
+	this->char_masks[114] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// r
+	this->char_masks[115] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// s
+	this->char_masks[116] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// t
+	this->char_masks[117] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// u
+	this->char_masks[118] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// v
+	this->char_masks[119] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// w
+	this->char_masks[120] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// x
+	this->char_masks[121] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// y
+	this->char_masks[122] = C_TAG_KEY | C_TAG_VALUE | C_PARAM_VALUE | C_CMD;	// z
 	this->char_masks[123] = C_TAG_VALUE | C_PARAM_VALUE;	// {
 	this->char_masks[124] = C_TAG_VALUE | C_PARAM_VALUE;	// |
 	this->char_masks[125] = C_TAG_VALUE | C_PARAM_VALUE;	// }
@@ -180,7 +180,58 @@ Validator	&Validator::operator=(Validator const &other)
 // Setters
 
 // Methods
-bool		Validator::validateContent(const char *content)
+
+inline std::vector<std::string> split(const std::string& s, char del) {
+	std::vector<std::string>	splitted;
+	std::istringstream			ss(s);
+	std::string					buff;
+
+	while (getline(ss, buff, del))
+		splitted.push_back(buff);
+
+	return splitted;
+}
+
+inline std::map<std::string, std::string> tags_to_map(const std::string& s)
+{
+	std::vector<std::string>			splitted = split(s.substr(1), ';');
+	std::map<std::string, std::string>	ret;
+	
+	for (size_t i = 0; i < splitted.size(); i++)
+	{
+		size_t pos = splitted[i].find('='); 
+		if (splitted[i].find('=') == std::string::npos)
+			ret[splitted[i]] = "";
+		else
+			ret[splitted[i].substr(0, pos)] = splitted[i].substr(pos + 1);
+	}
+	return (ret);
+}
+
+Message		Validator::parseContent(std::string content)
+{
+	Message			msg;
+	std::string		to_split;
+	size_t			colon = content.find(':');
+
+	if (colon != std::string::npos)
+		to_split = content.substr(0, colon);
+	else
+		to_split = content;
+
+	std::vector<std::string>	splitted = split(to_split, ' ');
+	if (colon != std::string::npos) splitted.push_back(content.substr(colon + 1));
+
+	if (splitted[0][0] == '@') {
+		msg.tags = tags_to_map(splitted[0]);
+		splitted.erase(splitted.begin());		
+	}
+	msg.cmdName = splitted[0];
+	splitted.erase(splitted.begin());		
+	msg.args = splitted;
+	return (msg);
+}
+bool		Validator::validateContent(std::string content)
 {
 	this->content = content;
 	this->cursor = 0;

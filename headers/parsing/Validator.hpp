@@ -6,14 +6,18 @@
 /*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/13 16:44:52 by picheval          #+#    #+#             */
-/*   Updated: 2026/08/03 19:42:12 by picheval         ###   ########.fr       */
+/*   Updated: 2026/08/31 16:09:01 by picheval         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef VALIDATOR_HPP
 # define VALIDATOR_HPP
 
+# include <iostream>
+# include <cstdlib> // EXIT_FAILURE
+# include <bits/stdc++.h> // stringstream
 # include "validator.h"
+# include "Message.hpp"
 
 class Validator {
 
@@ -66,7 +70,8 @@ public:
 	// Setters
 
 	// Methods
-	bool				validateContent(const char *content);
+	bool				validateContent(std::string content);
+	Message				parseContent(std::string content);
 };
 
 #endif

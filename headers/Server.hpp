@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "client.hpp"
+#include "CommandValidator.hpp"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
@@ -49,7 +50,10 @@ private:
     std::vector<int>        toRemove_;
     std::map<int, Client>   Clients_;
 
+	CommandValidator	cv;
+
     Server( void );
+	void				exec(Message &msg);
 
 public:
     class ServerException: public std::exception

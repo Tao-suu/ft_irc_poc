@@ -6,14 +6,12 @@
 /*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/03 15:13:14 by picheval          #+#    #+#             */
-/*   Updated: 2026/08/03 18:19:30 by picheval         ###   ########.fr       */
+/*   Updated: 2026/08/31 16:08:53 by picheval         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef VALIDATOR_H
 # define VALIDATOR_H
-
-# include <iostream>
 
 # define C_NONE				(0 << 0)
 # define C_SPACE			(1 << 0)
