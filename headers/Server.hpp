@@ -55,6 +55,17 @@ private:
     Server( void );
 	void				exec(Message &msg);
 
+	// void				pass();
+	// void				user();
+	// void				nick();
+	
+	// void				join();
+	// void				kick();
+	// void				invite();
+	// void				mode();
+	// void				privmsg();
+	// void				
+
 public:
     class ServerException: public std::exception
     {

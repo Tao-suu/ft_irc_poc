@@ -372,3 +372,9 @@ void Channel::RemoveTopicMode(Client *client)
     else
         MessageClient(client, "You need the operator privilege to use this commande");
 }
+
+void MessageClient(Client *client, std::string message)
+{
+	(void)client;
+	(void)message;
+}

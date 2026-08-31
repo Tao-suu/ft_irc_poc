@@ -69,3 +69,37 @@ class Channel
 };
 
 void MessageClient(Client *client, std::string message);
+
+
+// char mode;
+// mode = mode & MODE_KEY
+
+
+// char c = 0b000
+// char i = 0b000
+// //		   rwx
+
+// #define R 1 // 0b001
+// #define W 2 // 0b010 
+// #define X 4 // 0b100
+
+
+// char file;
+
+// file = 0b101
+
+// if (file & (R | X)) -> true;
+
+
+// 0 | 0 = 0
+// 0 | 1 = 1
+// 1 | 1 = 1
+
+// 0 & 0 = 0
+// 0 & 1 = 0
+// 1 & 1 = 1
+
+// 0 ^ 0 = 0
+// 0 ^ 1 = 1
+// 1 ^ 1 = 0
+
