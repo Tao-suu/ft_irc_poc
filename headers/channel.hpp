@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "client.hpp"
-
+#include <exception>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -12,13 +12,17 @@ class Channel
         std::string             _Name;
 
         std::vector<Client*>     _Clients;
-        std::vector<Client*>     _Invitation;
+        std::vector<Client*>     _Invitations;
         std::vector<Client*>     _Operators;
         unsigned int            _UserLimit;
         std::string             _Key;
         std::string             _Topic;
-        //mode
-        //bot
+        
+        bool                    _ModeInviteOnly;
+        bool                    _ModeTopic;
+        bool                    _ModeKey;
+        bool                    _ModeOperator;
+        bool                    _ModeUserLimit;
 
     public :
         Channel();
@@ -28,36 +32,40 @@ class Channel
         ~Channel();
 
         std::string             getName() const;
-        std::vector<Client*>     getListClient() const;
-        std::vector<Client*>     getListInvitation() const;
-         std::vector<Client*>    getOperators() const;
+        std::vector<Client*>    getClients() const;
+        std::vector<Client*>    getInvitedClients() const;
+        std::vector<Client*>    getOperators() const;
         unsigned int            getUserLimit() const;
         std::string             getKey() const;
         std::string             getTopic() const;
 
+        void JoinChannel(Client *client);
         void AddClient(Client *client);
-        void RemoveClient(Client *client);
-        bool IsClientOnTheList(Client *client) const;
+        void ExitChannel(Client *client);
+        void KickClient(Client *operators, Client *client);
+        bool IsClientInChannel(Client *client) const;
 
-        void AddClientInvitation(Client *client);
-        void RemoveClientInvitation(Client *client);
-        bool IsClientOnTheListInvitation(Client *client) const;
+        void InvitClient(Client *client, Client *user);
+        void RemoveInvitedClient(Client *client, Client *user);
+        bool IsClientInvited(Client *client) const;
+        void SetInviteOnlyMode(Client *client);
 
-        void SetOperator(Client *client);
-        void RemoveOperator(Client *client);
+        void GiveOperatorPrivilege(Client *client, Client *user);
+        void RemoveOperator(Client *client, Client *user);
         bool IsAnOperator(Client *client);
+        void SetOperatorMode(Client *client);
 
-        void SetUserLimit(unsigned int limit);
-        void RemoveUserLimit();
-        bool HasAnUserLimit();
+        void SetUserLimitMode(Client *client);
+        void SetUserLimit(Client *client, unsigned int limit);
+        void RemoveUserLimitMode(Client *client);
 
-        void SetKey(std::string key);
-        void RemoveKey();
-        bool HasAnKey();
-
-        void SetTopic(std::string Topic);
-        void RemoveTopic();
-
-        //add remove has mode
-        // add remove has mode
+        void SetKeyMode(Client *client);
+        void SetKey(Client *client, std::string key);
+        void RemoveKeyMode(Client *client);
+       
+        void SetTopicMode(Client *client);
+        void SetTopic(Client *client, std::string topic);
+        void RemoveTopicMode(Client *client);
 };
+
+void MessageClient(Client *client, std::string message);

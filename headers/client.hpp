@@ -10,7 +10,6 @@ class Client
         std::string _nickname;
         std::string _username;
 
-        
     public:
         std::string _in_buffer;
 
