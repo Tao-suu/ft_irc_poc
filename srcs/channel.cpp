@@ -1,5 +1,4 @@
 #include "channel.hpp"
-#include "MessageError.hpp"
 
 Channel::Channel(){};
 
@@ -45,7 +44,6 @@ std::string Channel::getTopic() const
     return(_Topic);
 }
 
-// make it with switch and case ?
 void Channel::JoinChannel(Client *client)
 {
     if (IsClientInChannel(client))
@@ -123,7 +121,6 @@ void Channel::InvitClient(Client *client, Client *user)
                 _Invitations.push_back(client);
                 MessageClient(user, "The invitation has been send");
                 MessageClient(client, "You receive an invitation");
-                // other function need to say witch channel
             }
         }
         else
@@ -141,7 +138,6 @@ void Channel::RemoveInvitedClient(Client *client, Client *user)
         {
             _Invitations.erase(std::find(_Invitations.begin(), _Invitations.end(), client));
             MessageClient(user, "The user is removed from the invitation list");
-            //message to client that he is no longer on the list ?
         }
         else
             MessageClient(user, "The user is not on the list");
@@ -243,7 +239,7 @@ void Channel::SetUserLimitMode(Client *client)
         MessageClient(client, "You need the operator privilege to use this commande");
 }
 
-//decide of a limit max ? + parsing -> need integer as params
+//limit max ? protect from int max + 1 ? Accept long ?
 void Channel::SetUserLimit(Client *client, unsigned int limit)
 {
     if (IsAnOperator(client))
