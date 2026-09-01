@@ -48,9 +48,9 @@ void Channel::JoinChannel(Client *client)
 {
     if (IsClientInChannel(client))
     {
-        if (!_ModeInviteOnly)
+        if (!(_Mode & MODE_INVITE_ONLY))
         {
-            if (_ModeUserLimit || _Clients.size() < _UserLimit)
+            if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
                 AddClient(client);
             else       
                 MessageClient(client, "You cannot join this channel, the user limit is reached");
@@ -59,7 +59,7 @@ void Channel::JoinChannel(Client *client)
         {
             if (IsClientInvited(client))
             {
-                if (!_ModeUserLimit || _Clients.size() < _UserLimit)
+                if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
                     AddClient(client);
                 else
                     MessageClient(client, "You cannot join this channel, the user limit is reached");
@@ -157,10 +157,10 @@ void Channel::SetInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if(!_ModeInviteOnly)
+        if(!(_Mode & MODE_INVITE_ONLY))
         {
             std::cout << "The channel is now on Invit Only Mode";
-            _ModeInviteOnly = true;
+            _Mode = _Mode & MODE_USER_LIMIT;
         }
         else
             MessageClient(client, "The channel is already on Invit Only Mode");
@@ -211,10 +211,10 @@ void Channel::SetOperatorMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if(!_ModeOperator)
+        if(!(_Mode & MODE_OPERATOR))
         {
             std::cout << "The channel is now on Invit Only Mode";
-            _ModeOperator = true;
+            _Mode = _Mode & MODE_OPERATOR;
         }
         else
             MessageClient(client, "The channel is already on Operator Mode");
@@ -227,10 +227,10 @@ void Channel::SetUserLimitMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (!_ModeUserLimit)
+        if (!(_Mode & MODE_USER_LIMIT))
         {
            std::cout << "The channel is now on User Limit Mode"<<std::endl;
-            _ModeUserLimit = true;
+            _Mode = _Mode & MODE_USER_LIMIT;
         }
         else
             MessageClient(client, "The channel is already on User Limit Mode");
@@ -244,7 +244,7 @@ void Channel::SetUserLimit(Client *client, unsigned int limit)
 {
     if (IsAnOperator(client))
     {
-        if (!_ModeUserLimit)
+        if (!(_Mode & MODE_USER_LIMIT))
            MessageClient(client, "The channel is not on User Limit Mode");
         else
         {
@@ -260,10 +260,10 @@ void Channel::RemoveUserLimitMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (_ModeUserLimit)
+        if (_Mode & MODE_USER_LIMIT)
         {
            std::cout << "The channel is not on User Limit Mode anymore"<<std::endl;
-            _ModeUserLimit = false;
+            _Mode = _Mode ^ MODE_USER_LIMIT;
             _UserLimit = 0;
         }
         else
@@ -277,10 +277,10 @@ void Channel::SetKeyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (!_ModeKey)
+        if (!(_Mode & MODE_KEY))
         {
            std::cout << "The channel is now on Key Mode"<<std::endl;
-            _ModeKey = true;
+            _Mode = _Mode & MODE_KEY;
         }
         else
             MessageClient(client, "The channel is already on Key Mode");
@@ -294,7 +294,7 @@ void Channel::SetKey(Client *client, std::string key)
 {
    if (IsAnOperator(client))
     {
-        if (!_ModeKey)
+        if (!(_Mode & MODE_KEY))
            MessageClient(client, "The channel is not on User Limit Mode");
         else
         {
@@ -310,10 +310,10 @@ void Channel::RemoveKeyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (_ModeKey)
+        if (_Mode & MODE_KEY)
         {
            std::cout << "The channel is not on Key Mode anymore"<<std::endl;
-            _ModeKey = false;
+            _Mode = _Mode ^ MODE_KEY;
             _Key = "";
         }
         else
@@ -327,10 +327,10 @@ void Channel::SetTopicMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (!_ModeTopic)
+        if (!((_Mode & MODE_TOPIC)))
         {
            std::cout << "The channel is now on Topic Mode"<<std::endl;
-            _ModeTopic = true;
+            _Mode = _Mode & MODE_TOPIC;
         }
         else
             MessageClient(client, "The channel is already on Topic Mode");
@@ -344,7 +344,7 @@ void Channel::SetTopic(Client *client, std::string topic)
 {
    if (IsAnOperator(client))
     {
-        if (!_ModeTopic)
+        if (!(_Mode & MODE_TOPIC))
            MessageClient(client, "The channel is not on Topic Mode");
         else
         {
@@ -360,10 +360,10 @@ void Channel::RemoveTopicMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (_ModeTopic)
+        if (_Mode & MODE_TOPIC)
         {
            std::cout << "The channel is not on Topic Mode anymore"<<std::endl;
-            _ModeTopic = false;
+            _Mode = _Mode ^ MODE_TOPIC;
             _Topic = "";
         }
         else
@@ -371,4 +371,10 @@ void Channel::RemoveTopicMode(Client *client)
     }
     else
         MessageClient(client, "You need the operator privilege to use this commande");
+}
+
+void MessageClient(Client *client, std::string message)
+{
+    (void) client;
+    (void) message;
 }
