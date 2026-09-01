@@ -1,10 +1,16 @@
 #pragma once 
 
-#include "client.hpp"
-#include <exception>
-#include <iostream>
-#include <vector>
-#include <algorithm>
+# include "client.hpp"
+# include <exception>
+# include <iostream>
+# include <vector>
+# include <algorithm>
+
+# define  MODE_INVITE_ONLY  (0 << 0)
+# define  MODE_TOPIC        (1 << 0)
+# define  MODE_KEY          (1 << 1)
+# define  MODE_OPERATOR     (1 << 2)
+# define  MODE_USER_LIMIT   (1 << 3)
 
 class Channel
 {
@@ -17,13 +23,8 @@ class Channel
         unsigned int            _UserLimit;
         std::string             _Key;
         std::string             _Topic;
+        char                    _Mode;
         
-        bool                    _ModeInviteOnly;
-        bool                    _ModeTopic;
-        bool                    _ModeKey;
-        bool                    _ModeOperator;
-        bool                    _ModeUserLimit;
-
     public :
         Channel();
         Channel(std::string name);
