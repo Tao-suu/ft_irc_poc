@@ -27,14 +27,14 @@ private:
 
 public:
 	// Attributes
-	std::map<std::string, std::string>	tags;
-	std::string							cmdName;
-	std::vector<std::string>			args;
+	std::map<std::string, std::string>		tags;
+	std::string								cmdName;
+	std::vector< std::vector<std::string> >	args;
 
 	// Constructors / Destructor
 	Message(std::map<std::string, std::string> tags = std::map<std::string, std::string>(),
 		std::string cmdName = "",
-		std::vector<std::string> args = std::vector<std::string>());
+		std::vector< std::vector<std::string> > args = std::vector< std::vector<std::string> >());
 	Message(Message const &other);
 	~Message(void);
 

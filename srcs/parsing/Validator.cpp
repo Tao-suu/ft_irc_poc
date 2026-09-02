@@ -220,15 +220,24 @@ Message		Validator::parseContent(std::string content)
 		to_split = content;
 
 	std::vector<std::string>	splitted = split(to_split, ' ');
-	if (colon != std::string::npos) splitted.push_back(content.substr(colon + 2));
 
 	if (splitted[0][0] == '@') {
 		msg.tags = tags_to_map(splitted[0]);
 		splitted.erase(splitted.begin());		
 	}
 	msg.cmdName = splitted[0];
-	splitted.erase(splitted.begin());		
-	msg.args = splitted;
+	splitted.erase(splitted.begin());
+	for (size_t i = 0; i < splitted.size(); i++)
+	{
+		std::vector<std::string>	subSplitted = split(splitted[i], ',');
+		msg.args.push_back(subSplitted);
+	}
+	if (colon != std::string::npos)
+	{
+		std::vector<std::string>	colonVector;
+		colonVector.push_back(content.substr(colon + 2));
+		msg.args.push_back(colonVector);
+	}
 	return (msg);
 }
 bool		Validator::validateContent(std::string content)

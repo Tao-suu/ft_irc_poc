@@ -18,7 +18,7 @@
 // Constructors / Destructor
 Message::Message(std::map<std::string, std::string> tags,
 		std::string cmdName,
-		std::vector<std::string> args): tags(tags), cmdName(cmdName), args(args)
+		std::vector< std::vector<std::string> > args): tags(tags), cmdName(cmdName), args(args)
 {
 }
 Message::Message(Message const &other)
@@ -42,15 +42,22 @@ Message	&Message::operator=(Message const &other)
 }
 std::ostream&	operator<<(std::ostream& os, Message& msg)
 {
-	os << "tags:";
-	for (std::map<std::string, std::string>::iterator it = msg.tags.begin(); it != msg.tags.end(); it++)
-		os << " \"" << (*it).first << "\"=\"" << (*it).second << "\"";
-	os << std::endl;
 	os << "cmd: " << msg.cmdName << std::endl;
-	os << "params:";
-	for (std::vector<std::string>::iterator it = msg.args.begin(); it != msg.args.end(); it++)
-		os << " \"" << *it << "\"";
-	os << std::endl;
+	os << "tags:" << std::endl;
+	for (std::map<std::string, std::string>::iterator it = msg.tags.begin(); it != msg.tags.end(); it++)
+		os << "\t\"" << (*it).first << "\"=\"" << (*it).second << "\"" << std::endl;
+	os << "params:" << std::endl;
+	for (std::vector< std::vector<std::string> >::iterator it1 = msg.args.begin(); it1 != msg.args.end(); it1++)
+	{
+		os << "\t";
+		for (std::vector<std::string>::iterator it2 = (*it1).begin(); it2 != (*it1).end(); it2++)
+		{
+			if (it2 != (*it1).begin())
+				os << " ";
+			os << "\"" << *it2 << "\"";
+		}
+		os << std::endl;
+	}
 	return (os);
 }
 
