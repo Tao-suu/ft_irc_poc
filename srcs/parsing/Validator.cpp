@@ -212,7 +212,7 @@ Message		Validator::parseContent(std::string content)
 {
 	Message			msg;
 	std::string		to_split;
-	size_t			colon = content.find(':');
+	size_t			colon = content.find(" :");
 
 	if (colon != std::string::npos)
 		to_split = content.substr(0, colon);
@@ -220,7 +220,7 @@ Message		Validator::parseContent(std::string content)
 		to_split = content;
 
 	std::vector<std::string>	splitted = split(to_split, ' ');
-	if (colon != std::string::npos) splitted.push_back(content.substr(colon + 1));
+	if (colon != std::string::npos) splitted.push_back(content.substr(colon + 2));
 
 	if (splitted[0][0] == '@') {
 		msg.tags = tags_to_map(splitted[0]);

@@ -15,7 +15,7 @@
 
 # include <iostream>
 # include <cstdlib> // EXIT_FAILURE
-# include <bits/stdc++.h> // stringstream
+# include <sstream> // stringstream
 # include "validator.h"
 # include "Message.hpp"
 
