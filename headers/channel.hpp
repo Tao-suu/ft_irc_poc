@@ -21,6 +21,8 @@ class Channel
         std::vector<Client*>     _Clients;
         std::vector<Client*>     _Invitations;
         std::vector<Client*>     _Operators;
+        std::vector<Client*>    _Banned;
+        
         unsigned int            _UserLimit;
         std::string             _Key;
         std::string             _Topic;

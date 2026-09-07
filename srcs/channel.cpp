@@ -295,7 +295,7 @@ void Channel::SetKey(Client *client, std::string key)
    if (IsAnOperator(client))
     {
         if (!(_Mode & MODE_KEY))
-           MessageClient(client, "The channel is not on User Limit Mode");
+           MessageClient(client, "The channel is not on Key Mode");
         else
         {
             std::cout << "The channel has now a key" << std::endl;
