@@ -5,6 +5,7 @@
 # include <iostream>
 # include <vector>
 # include <algorithm>
+# include "Server.hpp"
 
 # define  MODE_INVITE_ONLY  (0 << 0)
 # define  MODE_TOPIC        (1 << 0)
@@ -24,10 +25,11 @@ class Channel
         std::string             _Key;
         std::string             _Topic;
         char                    _Mode;
+        Server*                 _Server;
         
     public :
         Channel();
-        Channel(std::string name);
+        Channel(std::string name, Server* server);
         Channel(const Channel &copy);
         Channel &operator= (const Channel &src);
         ~Channel();

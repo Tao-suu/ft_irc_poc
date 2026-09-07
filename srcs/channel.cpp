@@ -2,7 +2,7 @@
 
 Channel::Channel(){};
 
-Channel::Channel(std::string name) : _Name(name) {}
+Channel::Channel(std::string name, Server *server) : _Name(name), _Server(server) {}
 
 Channel::Channel(const Channel &copy) {*this = copy;}
 
