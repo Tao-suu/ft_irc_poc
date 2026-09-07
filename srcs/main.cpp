@@ -4,7 +4,7 @@
 
 int main( void )
 {
-    Server  server(14010, "");
+    Server  server(14010, "michel");
 
     try
     {

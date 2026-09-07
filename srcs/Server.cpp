@@ -131,23 +131,67 @@ void                Server::handleClientData( int fd )
     }
 
     size_t  pos;
-    if ((pos = Clients_[fd]._in_buffer.find("\r\n")) != std::string::npos)
-    // if ((pos = Clients_[fd]._in_buffer.find("\n")) != std::string::npos)
+    if ((pos = Clients_[fd]._in_buffer.find(SEPARATOR)) != std::string::npos)
     {
         std::string line = Clients_[fd]._in_buffer.substr(0, pos);
-        Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + 2, Clients_[fd]._in_buffer.size() - (pos + 2));
+        Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + SEPARATOR.size(), Clients_[fd]._in_buffer.size() - (pos + SEPARATOR.size()));
         std::cout << "client fd(" << fd << ") : " << line << std::endl;
 		if (!cv.validateContent(line))
 			return ;
 		Message	msg = cv.parseContent(line);
-		exec(msg);
+		exec(msg, Clients_[fd]);
     }
 }
-void				Server::exec(Message &msg)
+void				Server::exec(Message &msg, Client& sender)
 {
-	std::cout << msg << std::endl;
+	try {
+		if (msg.cmdName == "PASS") pass(msg, sender);
+		else if (msg.cmdName == "NICK") nick(msg, sender);
+		else std::cerr << "PUTE" << std::endl;
+	} catch (Error &e) {
+		send_error(e);
+	}
 }
 
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
 const char* Server::ServerException::what() const throw() {return message_.c_str();}
 Server::ServerException::~ServerException() throw() {}
+
+
+bool 				Server::is_nickname_exist(std::string nick) {
+	for (std::map<int, Client>::iterator i = Clients_.begin(); i != Clients_.end(); i++)
+		if ((*i).second.GetNickname() == nick) return true;
+	return false; 
+}
+
+void				Server::send_error(Error &e)
+{
+	e._msg += "\r\n";
+	send(e._client.GetFd(), e._msg.c_str(), e._msg.size(), 0);
+}
+
+
+void				Server::pass(Message &msg, Client& cl) {
+	if (msg.args.size() < 1 || msg.args[0].size() < 1)
+		throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PASS"));
+	if (Clients_.find(cl.GetFd()) == Clients_.end())
+		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+	if (msg.args[0][0] != this->pass_)
+		throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+	cl.pass_ok = true;
+}
+
+void				Server::nick(Message &msg, Client& cl) {
+	std::stringstream	err;
+
+	if (msg.args.size() < 1 || msg.args[0].size() < 1)
+		throw Error(cl, ERR_NONICKNAMEGIVEN((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+	else if (msg.args[0][0].find(':') != std::string::npos || msg.args[0][0].find(' ') != std::string::npos)
+		throw Error(cl, ERR_ERRONEUSNICKNAME((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
+	else if (is_nickname_exist(msg.args[0][0]))
+		throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
+	cl.SetNickname(msg.args[0][0]);
+	if (cl.registered) {
+		/*Broadcast new name to his channel and himself*/
+	}
+}

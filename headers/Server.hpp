@@ -17,9 +17,13 @@
 
 #include "client.hpp"
 #include "CommandValidator.hpp"
+#include "Error.hpp"
+#include "numerics.h"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
+
+class Error;
 
 class Server
 {
@@ -53,11 +57,11 @@ private:
 	CommandValidator	cv;
 
     Server( void );
-	void				exec(Message &msg);
+	void				exec(Message &msg, Client& sender);
 
-	// void				pass();
+	void				pass(Message &msg, Client& cl);
+	void				nick(Message &msg, Client& cl);
 	// void				user();
-	// void				nick();
 	
 	// void				join();
 	// void				kick();
@@ -65,6 +69,9 @@ private:
 	// void				mode();
 	// void				privmsg();
 	// void				
+
+	bool 				is_nickname_exist(std::string nick);
+	void				send_error(Error &e);
 
 public:
     class ServerException: public std::exception
