@@ -9,6 +9,7 @@ class Client
 		std::string _IP;
         std::string _nickname;
         std::string _username;
+        std::string _realname;
 
 		bool		nick_set;
 		
@@ -17,6 +18,7 @@ class Client
 
 		bool		pass_ok;
 		bool		registered;
+		char		cap_process;
 
         Client( int fd = 0 );
         Client(const Client &o);
@@ -27,6 +29,7 @@ class Client
         std::string  GetIP();
         std::string  GetNickname();
         std::string  GetUsername();
+        std::string  GetRealname();
 
 		// void		set_pass_ok(bool val);
 
@@ -34,4 +37,5 @@ class Client
         void    SetIpAdd(std::string IP);
         void    SetNickname(std::string nickname);
         void    SetUsername(std::string username);
+        void    SetRealname(std::string realname);
 };

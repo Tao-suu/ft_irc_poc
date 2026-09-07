@@ -61,7 +61,7 @@ private:
 
 	void				pass(Message &msg, Client& cl);
 	void				nick(Message &msg, Client& cl);
-	// void				user();
+	void				user(Message &msg, Client& cl);
 	
 	// void				join();
 	// void				kick();
@@ -72,6 +72,8 @@ private:
 
 	bool 				is_nickname_exist(std::string nick);
 	void				send_error(Error &e);
+	void				send_message(Client &cl, std::string msg);
+	void				sendWelcome(Client &cl);
 
 public:
     class ServerException: public std::exception

@@ -108,6 +108,8 @@ void                Server::acceptNewClient( void )
     pollfds_.push_back(new_fd);
 
     Clients_[fd] = Client(fd);
+	if (pass_.empty())
+		Clients_[fd].pass_ok = true;
     std::cout << "new client fd = " << fd << "\taddr_ = " << inet_ntoa(addr.sin_addr) << std::endl;
 }
 
@@ -131,7 +133,7 @@ void                Server::handleClientData( int fd )
     }
 
     size_t  pos;
-    if ((pos = Clients_[fd]._in_buffer.find(SEPARATOR)) != std::string::npos)
+    while ((pos = Clients_[fd]._in_buffer.find(SEPARATOR)) != std::string::npos)
     {
         std::string line = Clients_[fd]._in_buffer.substr(0, pos);
         Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + SEPARATOR.size(), Clients_[fd]._in_buffer.size() - (pos + SEPARATOR.size()));
@@ -145,23 +147,15 @@ void                Server::handleClientData( int fd )
 void				Server::exec(Message &msg, Client& sender)
 {
 	try {
+		if (msg.cmdName != "PASS" && msg.cmdName != "NICK" && msg.cmdName != "USER" && !sender.pass_ok)
+			throw Error(sender, ERR_NOTREGISTERED((sender.GetNickname().empty() ? "*" : sender.GetNickname())));
 		if (msg.cmdName == "PASS") pass(msg, sender);
 		else if (msg.cmdName == "NICK") nick(msg, sender);
+		else if (msg.cmdName == "USER") user(msg, sender);
 		else std::cerr << "PUTE" << std::endl;
 	} catch (Error &e) {
 		send_error(e);
 	}
-}
-
-Server::ServerException::ServerException( const std::string& message ): message_(message) {}
-const char* Server::ServerException::what() const throw() {return message_.c_str();}
-Server::ServerException::~ServerException() throw() {}
-
-
-bool 				Server::is_nickname_exist(std::string nick) {
-	for (std::map<int, Client>::iterator i = Clients_.begin(); i != Clients_.end(); i++)
-		if ((*i).second.GetNickname() == nick) return true;
-	return false; 
 }
 
 void				Server::send_error(Error &e)
@@ -169,12 +163,36 @@ void				Server::send_error(Error &e)
 	e._msg += "\r\n";
 	send(e._client.GetFd(), e._msg.c_str(), e._msg.size(), 0);
 }
+void				Server::send_message(Client &cl, std::string msg)
+{
+	msg += "\r\n";
+	std::cout << "to client(" << cl.GetFd() << "): " << msg; 
+	send(cl.GetFd(), msg.c_str(), msg.size(), 0);
+}
 
+void				Server::sendWelcome(Client &cl)
+{
+	cl.registered = 1;
+	send_message(cl, RPL_WELCOME(cl.GetNickname()));
+	send_message(cl, RPL_YOURHOST(cl.GetNickname(), "ft_irc", "version"));
+	send_message(cl, RPL_CREATED(cl.GetNickname(), "datetime"));
+	send_message(cl, RPL_MYINFO(cl.GetNickname(), "ft_irc", "version", "modes"));
+}
+
+Server::ServerException::ServerException( const std::string& message ): message_(message) {}
+const char* Server::ServerException::what() const throw() {return message_.c_str();}
+Server::ServerException::~ServerException() throw() {}
+
+bool 				Server::is_nickname_exist(std::string nick) {
+	for (std::map<int, Client>::iterator i = Clients_.begin(); i != Clients_.end(); i++)
+		if ((*i).second.GetNickname() == nick) return true;
+	return false; 
+}
 
 void				Server::pass(Message &msg, Client& cl) {
 	if (msg.args.size() < 1 || msg.args[0].size() < 1)
 		throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PASS"));
-	if (Clients_.find(cl.GetFd()) == Clients_.end())
+	if (cl.registered)
 		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	if (msg.args[0][0] != this->pass_)
 		throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
@@ -182,16 +200,39 @@ void				Server::pass(Message &msg, Client& cl) {
 }
 
 void				Server::nick(Message &msg, Client& cl) {
-	std::stringstream	err;
-
+	if (cl.registered == false)
+	{
+		if (cl.cap_process == 1)
+			throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+		cl.cap_process = 1;
+	}
 	if (msg.args.size() < 1 || msg.args[0].size() < 1)
 		throw Error(cl, ERR_NONICKNAMEGIVEN((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	else if (msg.args[0][0].find(':') != std::string::npos || msg.args[0][0].find(' ') != std::string::npos)
 		throw Error(cl, ERR_ERRONEUSNICKNAME((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
-	else if (is_nickname_exist(msg.args[0][0]))
+	else if (is_nickname_exist(msg.args[0][0]) && msg.args[0][0] != cl.GetNickname())
 		throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
 	cl.SetNickname(msg.args[0][0]);
 	if (cl.registered) {
 		/*Broadcast new name to his channel and himself*/
 	}
+	if (cl.cap_process == 1 && cl.pass_ok)
+		sendWelcome(cl);
+}
+
+void				Server::user(Message &msg, Client& cl) {
+	if (cl.registered == false)
+	{
+		if (cl.cap_process == 1)
+			throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+		cl.cap_process = 1;
+	}
+	if (msg.args.size() < 4)
+		throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "USER"));
+	if (cl.registered)
+		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+	cl.SetUsername(msg.args[0][0]);
+	cl.SetRealname(msg.args[3][0]);
+	if (cl.cap_process == 1 && cl.pass_ok)
+		sendWelcome(cl);
 }
