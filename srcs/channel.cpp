@@ -1,6 +1,4 @@
 #include "channel.hpp"
-#include "numerics.h"
-#include "Error.hpp"
 
 Channel::Channel(){};
 
@@ -46,45 +44,21 @@ std::string Channel::getTopic() const
     return(_Topic);
 }
 
-// void Channel::JoinChannel(Client *client)
-// {
-//     if (IsClientInChannel(client))
-//     {
-//         if (!(_Mode & MODE_INVITE_ONLY))
-//         {
-//             if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
-//                 AddClient(client);
-//             else       
-//                 MessageClient(client, "You cannot join this channel, the user limit is reached");
-//         }
-//         else
-//         {
-//             if (IsClientInvited(client))
-//             {
-//                 if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
-//                     AddClient(client);
-//                 else
-//                     MessageClient(client, "You cannot join this channel, the user limit is reached");
-//             }
-//             else
-//                 MessageClient(client, "You need an invitation to join thiss channel");
-//         }
-//     }
-//     else
-//         MessageClient(client, "You already are in this channel");
-// }
-
 void Channel::JoinChannel(Client *client, std::string key)
 {
-    if (_Mode & MODE_KEY)
-    {
-        if (_Key != key)
-            throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name)); 
-    }
+    if (_Mode & MODE_KEY && _Key != key)
+        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name)); 
     if (IsClientBanned(client))
-        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name));
-   // if (_Mode & MODE_USER_LIMIT && _Clients.size() < _UserLimit)
-
+        throw Error(*client, ERR_BANNEDFROMCHAN(client->GetUsername(), _Name));
+    if (_Mode & MODE_USER_LIMIT && _Clients.size() < _UserLimit)
+        throw Error(*client, ERR_CHANNELISFULL(client->GetUsername(), _Name));
+    if(_Mode & MODE_INVITE_ONLY && IsClientInvited(client))
+        throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
+    if (_Mode & MODE_TOPIC)
+    {
+        MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
+        MessageClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
+    }
 }
 
 
@@ -375,6 +349,9 @@ void Channel::SetTopic(Client *client, std::string topic)
         {
             std::cout << "The Topic of the channel is now "<< topic << std::endl;
             _Topic = topic;
+            _AutorTopic = client;
+            time_t timestamp;
+            _TopicTime = time(&timestamp);
         }
     }
     else

@@ -1,6 +1,5 @@
 #include "Error.hpp"
 
-
 Error::Error(Client client, std::string msg): _client(client), _msg(msg) {}
 
 Error::Error(const Error &copy)

@@ -1,11 +1,15 @@
 #pragma once 
 
+// to organize
 # include "client.hpp"
 # include <exception>
 # include <iostream>
 # include <vector>
 # include <algorithm>
 # include "Server.hpp"
+# include "numerics.h"
+# include "Error.hpp"
+# include <ctime>
 
 # define  MODE_INVITE_ONLY  (0 << 0)
 # define  MODE_TOPIC        (1 << 0)
@@ -28,7 +32,9 @@ class Channel
         std::string             _Topic;
         char                    _Mode;
         Server*                 _Server;
-        
+        Client*                 _AutorTopic;
+        std::string                  _TopicTime;
+
     public :
         Channel();
         Channel(std::string name, Server* server);
@@ -72,8 +78,6 @@ class Channel
         void SetTopicMode(Client *client);
         void SetTopic(Client *client, std::string topic);
         void RemoveTopicMode(Client *client);
-
-
 };
 
 void MessageClient(Client *client, std::string message);
