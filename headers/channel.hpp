@@ -21,8 +21,8 @@ class Channel
         std::vector<Client*>     _Clients;
         std::vector<Client*>     _Invitations;
         std::vector<Client*>     _Operators;
-        std::vector<Client*>    _Banned;
-        
+        std::vector<Client*>     _Banned;
+
         unsigned int            _UserLimit;
         std::string             _Key;
         std::string             _Topic;
@@ -44,11 +44,12 @@ class Channel
         std::string             getKey() const;
         std::string             getTopic() const;
 
-        void JoinChannel(Client *client);
+        void JoinChannel(Client *client, std::string key);
         void AddClient(Client *client);
         void ExitChannel(Client *client);
         void KickClient(Client *operators, Client *client);
         bool IsClientInChannel(Client *client) const;
+        bool IsClientBanned(Client *client) const;
 
         void InvitClient(Client *client, Client *user);
         void RemoveInvitedClient(Client *client, Client *user);
@@ -71,6 +72,8 @@ class Channel
         void SetTopicMode(Client *client);
         void SetTopic(Client *client, std::string topic);
         void RemoveTopicMode(Client *client);
+
+
 };
 
 void MessageClient(Client *client, std::string message);

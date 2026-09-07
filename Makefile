@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: picheval <picheval@student.42.fr>          +#+  +:+       +#+         #
+#    By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/21 11:48:55 by picheval          #+#    #+#              #
-#    Updated: 2026/08/31 15:08:34 by picheval         ###   ########.fr        #
+#    Updated: 2026/09/07 17:48:10 by lbouchar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,8 @@ SRCS_RAW			= main.cpp \
 					  channel.cpp \
 					  client.cpp \
 					  Server.cpp \
-					  Message.cpp
+					  Message.cpp \
+					  Error.cpp
 SRCS				= $(addprefix $(SRCS_FOLDER), $(SRCS_RAW))
 OBJS_RAW			= $(SRCS_RAW:.cpp=.o)
 OBJS				= $(addprefix $(OBJS_FOLDER), $(OBJS_RAW))

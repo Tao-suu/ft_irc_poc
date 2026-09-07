@@ -1,4 +1,6 @@
 #include "channel.hpp"
+#include "numerics.h"
+#include "Error.hpp"
 
 Channel::Channel(){};
 
@@ -44,33 +46,47 @@ std::string Channel::getTopic() const
     return(_Topic);
 }
 
-void Channel::JoinChannel(Client *client)
+// void Channel::JoinChannel(Client *client)
+// {
+//     if (IsClientInChannel(client))
+//     {
+//         if (!(_Mode & MODE_INVITE_ONLY))
+//         {
+//             if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
+//                 AddClient(client);
+//             else       
+//                 MessageClient(client, "You cannot join this channel, the user limit is reached");
+//         }
+//         else
+//         {
+//             if (IsClientInvited(client))
+//             {
+//                 if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
+//                     AddClient(client);
+//                 else
+//                     MessageClient(client, "You cannot join this channel, the user limit is reached");
+//             }
+//             else
+//                 MessageClient(client, "You need an invitation to join thiss channel");
+//         }
+//     }
+//     else
+//         MessageClient(client, "You already are in this channel");
+// }
+
+void Channel::JoinChannel(Client *client, std::string key)
 {
-    if (IsClientInChannel(client))
+    if (_Mode & MODE_KEY)
     {
-        if (!(_Mode & MODE_INVITE_ONLY))
-        {
-            if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
-                AddClient(client);
-            else       
-                MessageClient(client, "You cannot join this channel, the user limit is reached");
-        }
-        else
-        {
-            if (IsClientInvited(client))
-            {
-                if (!(_Mode & MODE_USER_LIMIT) || _Clients.size() < _UserLimit)
-                    AddClient(client);
-                else
-                    MessageClient(client, "You cannot join this channel, the user limit is reached");
-            }
-            else
-                MessageClient(client, "You need an invitation to join thiss channel");
-        }
+        if (_Key != key)
+            throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name)); 
     }
-    else
-        MessageClient(client, "You already are in this channel");
+    if (IsClientBanned(client))
+        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name));
+   // if (_Mode & MODE_USER_LIMIT && _Clients.size() < _UserLimit)
+
 }
+
 
 void Channel::AddClient(Client *client)
 {
@@ -93,12 +109,21 @@ void Channel::KickClient(Client *client, Client *user)
 {
     if (IsAnOperator(client))
     {
+        _Banned.push_back(client);
         ExitChannel(client);
         MessageClient(user, "The user is kicked");
         MessageClient(client, "You have been kicked from the channel");
+        //check if already inside or already banned
     }
     else
         MessageClient(user, "You need the operator privilege to use this commande");
+}
+
+bool Channel::IsClientBanned(Client *client) const
+{
+    if ((std::find(_Banned.begin(), _Banned.end(), client)) == _Banned.end())
+        return false;
+    return true;
 }
 
 bool Channel::IsClientInChannel(Client *client) const
