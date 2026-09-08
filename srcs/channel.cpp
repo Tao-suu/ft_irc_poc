@@ -34,8 +34,8 @@ void Channel::JoinChannel(Client *client, std::string key)
     AddClient(client);
     if (_Mode & MODE_TOPIC)
     {
-        MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
-        MessageClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
+        MessageInClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
+        MessageInClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
     }
 }
 
@@ -84,7 +84,7 @@ void Channel::InvitClient(Client *client, Client *target)
     if (IsClientInChannel(target))
         throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     _Invitations.push_back(target);
-    MessageClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
+    MessageInClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -280,11 +280,18 @@ void Channel::RemoveTopicMode(Client *client)
 }
 
 /*************************/
-/*      MESSAGE CLIENT    */
+/*      MessageIn CLIENT    */
 /*************************/
 
-void MessageClient(Client *client, std::string message)
+void MessageInClient(Client *client, std::string MessageIn)
 {
 	(void)client;
-	(void)message;
+	(void)MessageIn;
 }
+
+
+/*************************/
+/*        GETTER         */
+/*************************/
+
+std::string     Channel::getName() const { return this->_Name; }

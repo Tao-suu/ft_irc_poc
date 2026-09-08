@@ -208,9 +208,9 @@ inline std::map<std::string, std::string> tags_to_map(const std::string& s)
 	return (ret);
 }
 
-Message		Validator::parseContent(std::string content)
+MessageIn		Validator::parseContent(std::string content)
 {
-	Message			msg;
+	MessageIn			msg;
 	std::string		to_split;
 	size_t			colon = content.find(" :");
 

@@ -17,7 +17,7 @@
 # include <cstdlib> // EXIT_FAILURE
 # include <sstream> // stringstream
 # include "validator.h"
-# include "Message.hpp"
+# include "MessageIn.hpp"
 
 class Validator {
 
@@ -71,7 +71,7 @@ public:
 
 	// Methods
 	bool				validateContent(std::string content);
-	Message				parseContent(std::string content);
+	MessageIn				parseContent(std::string content);
 };
 
 #endif
