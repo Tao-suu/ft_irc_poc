@@ -33,7 +33,7 @@ class Channel
         char                    _Mode;
         Server*                 _Server;
         Client*                 _AutorTopic;
-        std::string                  _TopicTime;
+        std::string             _TopicTime;
 
     public :
         Channel();
@@ -55,7 +55,6 @@ class Channel
         void ExitChannel(Client *client);
         void KickClient(Client *operators, Client *client);
         bool IsClientInChannel(Client *client) const;
-        bool IsClientBanned(Client *client) const;
 
         void InvitClient(Client *client, Client *user);
         void RemoveInvitedClient(Client *client, Client *user);

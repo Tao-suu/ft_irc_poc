@@ -47,25 +47,23 @@ std::string Channel::getTopic() const
 void Channel::JoinChannel(Client *client, std::string key)
 {
     if (_Mode & MODE_KEY && _Key != key)
-        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name)); 
-    if (IsClientBanned(client))
-        throw Error(*client, ERR_BANNEDFROMCHAN(client->GetUsername(), _Name));
+        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name));
     if (_Mode & MODE_USER_LIMIT && _Clients.size() < _UserLimit)
         throw Error(*client, ERR_CHANNELISFULL(client->GetUsername(), _Name));
     if(_Mode & MODE_INVITE_ONLY && IsClientInvited(client))
         throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
+    AddClient(client);
     if (_Mode & MODE_TOPIC)
     {
         MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
         MessageClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
     }
+    // Message for everyone "client->GetUsername() is joining the channel _Name"
 }
-
 
 void Channel::AddClient(Client *client)
 {
     _Clients.push_back(client);
-    std::cout << client->GetUsername() << "join the channel" << std::endl;
     if(IsClientInvited(client))
         _Invitations.erase(std::find(_Invitations.begin(), _Invitations.end(), client));
 }
@@ -73,32 +71,14 @@ void Channel::AddClient(Client *client)
 void Channel::ExitChannel(Client *client)
 {
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
-    MessageClient(client, "You left the channel");
     if (IsAnOperator(client))
          _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
-    std::cout << client->GetUsername() << "left the channel" << std::endl;
 }
 
-void Channel::KickClient(Client *client, Client *user)
-{
-    if (IsAnOperator(client))
-    {
-        _Banned.push_back(client);
-        ExitChannel(client);
-        MessageClient(user, "The user is kicked");
-        MessageClient(client, "You have been kicked from the channel");
-        //check if already inside or already banned
-    }
-    else
-        MessageClient(user, "You need the operator privilege to use this commande");
-}
-
-bool Channel::IsClientBanned(Client *client) const
-{
-    if ((std::find(_Banned.begin(), _Banned.end(), client)) == _Banned.end())
-        return false;
-    return true;
-}
+// void Channel::KickClient(Client *client, Client *target)
+// {
+//     if (_Mode & MODE_OPERATOR || 
+// }
 
 bool Channel::IsClientInChannel(Client *client) const
 {
