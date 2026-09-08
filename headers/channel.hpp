@@ -14,19 +14,15 @@
 # define  MODE_INVITE_ONLY  (0 << 0)
 # define  MODE_TOPIC        (1 << 0)
 # define  MODE_KEY          (1 << 1)
-# define  MODE_OPERATOR     (1 << 2)
-# define  MODE_USER_LIMIT   (1 << 3)
+# define  MODE_USER_LIMIT   (1 << 2)
 
 class Channel
 {
     private :
         std::string             _Name;
-
-        std::vector<Client*>     _Clients;
-        std::vector<Client*>     _Invitations;
-        std::vector<Client*>     _Operators;
-        std::vector<Client*>     _Banned;
-
+        std::vector<Client*>    _Clients;
+        std::vector<Client*>    _Invitations;
+        std::vector<Client*>    _Operators;
         unsigned int            _UserLimit;
         std::string             _Key;
         std::string             _Topic;
@@ -42,29 +38,20 @@ class Channel
         Channel &operator= (const Channel &src);
         ~Channel();
 
-        std::string             getName() const;
-        std::vector<Client*>    getClients() const;
-        std::vector<Client*>    getInvitedClients() const;
-        std::vector<Client*>    getOperators() const;
-        unsigned int            getUserLimit() const;
-        std::string             getKey() const;
-        std::string             getTopic() const;
-
         void JoinChannel(Client *client, std::string key);
         void AddClient(Client *client);
         void ExitChannel(Client *client);
         void KickClient(Client *operators, Client *client);
         bool IsClientInChannel(Client *client) const;
 
-        void InvitClient(Client *client, Client *user);
-        void RemoveInvitedClient(Client *client, Client *user);
+        void InvitClient(Client *client, Client *target);
         bool IsClientInvited(Client *client) const;
         void SetInviteOnlyMode(Client *client);
+        void RemoveInviteOnlyMode(Client *client);
 
-        void GiveOperatorPrivilege(Client *client, Client *user);
-        void RemoveOperator(Client *client, Client *user);
+        void GiveOperatorPrivilege(Client *client, Client *target);
+        void TakeOperatorPrivilege(Client *client, Client *target);
         bool IsAnOperator(Client *client);
-        void SetOperatorMode(Client *client);
 
         void SetUserLimitMode(Client *client);
         void SetUserLimit(Client *client, unsigned int limit);
@@ -82,35 +69,43 @@ class Channel
 void MessageClient(Client *client, std::string message);
 
 
-// char mode;
-// mode = mode & MODE_KEY
 
-
-// char c = 0b000
-// char i = 0b000
-// //		   rwx
-
-// #define R 1 // 0b001
-// #define W 2 // 0b010 
-// #define X 4 // 0b100
-
-
-// char file;
-
-// file = 0b101
-
-// if (file & (R | X)) -> true;
-
-
-// 0 | 0 = 0
-// 0 | 1 = 1
-// 1 | 1 = 1
-
-// 0 & 0 = 0
-// 0 & 1 = 0
-// 1 & 1 = 1
-
-// 0 ^ 0 = 0
-// 0 ^ 1 = 1
-// 1 ^ 1 = 0
+/******************/
+/*      GETTER    */
+/******************/ 
+//   std::string             getName() const;
+//         std::vector<Client*>    getClients() const;
+//         std::vector<Client*>    getInvitedClients() const;
+//         std::vector<Client*>    getOperators() const;
+//         unsigned int            getUserLimit() const;
+//         std::string             getKey() const;
+//         std::string             getTopic() const;
+// std::string Channel::getName() const
+// {
+//     return(_Name);
+// }
+// std::vector<Client*> Channel::getClients() const
+// {
+//     return(_Clients);
+// }
+// std::vector<Client*> Channel::getInvitedClients() const
+// {
+//     return(_Invitations);
+// }
+// std::vector<Client*> Channel::getOperators() const
+// {
+//     return(_Operators);
+// }
+// unsigned int Channel::getUserLimit() const
+// {
+//     return(_UserLimit);
+// }
+// std::string Channel::getKey() const
+// {
+//     return(_Key);
+// }
+// std::string Channel::getTopic() const
+// {
+//     return(_Topic);
+// }
 

@@ -1,5 +1,9 @@
 #include "channel.hpp"
 
+/******************/
+/* CANONICAL FORM */
+/******************/
+
 Channel::Channel(){};
 
 Channel::Channel(std::string name, Server *server) : _Name(name), _Server(server) {}
@@ -15,42 +19,17 @@ Channel &Channel::operator=(const Channel &src)
 
 Channel::~Channel(){};
 
-std::string Channel::getName() const
-{
-    return(_Name);
-}
-std::vector<Client*> Channel::getClients() const
-{
-    return(_Clients);
-}
-std::vector<Client*> Channel::getInvitedClients() const
-{
-    return(_Invitations);
-}
-std::vector<Client*> Channel::getOperators() const
-{
-    return(_Operators);
-}
-unsigned int Channel::getUserLimit() const
-{
-    return(_UserLimit);
-}
-std::string Channel::getKey() const
-{
-    return(_Key);
-}
-std::string Channel::getTopic() const
-{
-    return(_Topic);
-}
+/*************************/
+/*     MANAGE CLIENTS    */
+/*************************/
 
 void Channel::JoinChannel(Client *client, std::string key)
 {
     if (_Mode & MODE_KEY && _Key != key)
         throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name));
-    if (_Mode & MODE_USER_LIMIT && _Clients.size() < _UserLimit)
+    if (_Mode & MODE_USER_LIMIT && _Clients.size() >= _UserLimit)
         throw Error(*client, ERR_CHANNELISFULL(client->GetUsername(), _Name));
-    if(_Mode & MODE_INVITE_ONLY && IsClientInvited(client))
+    if(_Mode & MODE_INVITE_ONLY && !IsClientInvited(client))
         throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
     AddClient(client);
     if (_Mode & MODE_TOPIC)
@@ -58,7 +37,6 @@ void Channel::JoinChannel(Client *client, std::string key)
         MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
         MessageClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
     }
-    // Message for everyone "client->GetUsername() is joining the channel _Name"
 }
 
 void Channel::AddClient(Client *client)
@@ -75,10 +53,16 @@ void Channel::ExitChannel(Client *client)
          _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
 }
 
-// void Channel::KickClient(Client *client, Client *target)
-// {
-//     if (_Mode & MODE_OPERATOR || 
-// }
+void Channel::KickClient(Client *client, Client *target)
+{
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+    if (!IsClientInChannel(target))
+        throw Error(*client, ERR_USERNOTINCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+    if (!IsClientInChannel(client))
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+    ExitChannel(target);
+}
 
 bool Channel::IsClientInChannel(Client *client) const
 {
@@ -87,42 +71,20 @@ bool Channel::IsClientInChannel(Client *client) const
     return true;
 }
 
-void Channel::InvitClient(Client *client, Client *user)
-{
-    if (IsAnOperator(client))
-    {
-        if(!IsClientInChannel(client))
-        {
-            if (IsClientInvited(user))
-                MessageClient(user, "This user is already invited");
-            else
-            {
-                _Invitations.push_back(client);
-                MessageClient(user, "The invitation has been send");
-                MessageClient(client, "You receive an invitation");
-            }
-        }
-        else
-            MessageClient(user, "The user is already in the channel");
-    }
-    else
-        MessageClient(user, "You need the operator privilege to use this commande");
-}
+/***********************/
+/*      INVITE MODE    */
+/***********************/
 
-void Channel::RemoveInvitedClient(Client *client, Client *user)
+void Channel::InvitClient(Client *client, Client *target)
 {
-    if (IsAnOperator(client))
-    {
-        if (IsClientInvited(user))
-        {
-            _Invitations.erase(std::find(_Invitations.begin(), _Invitations.end(), client));
-            MessageClient(user, "The user is removed from the invitation list");
-        }
-        else
-            MessageClient(user, "The user is not on the list");
-    }
-    else
-        MessageClient(user, "You need the operator privilege to use this commande");
+    if (!IsClientInChannel(client))
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+    if (IsClientInChannel(target))
+        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+    _Invitations.push_back(target);
+    MessageClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -137,46 +99,47 @@ void Channel::SetInviteOnlyMode(Client *client)
     if (IsAnOperator(client))
     {
         if(!(_Mode & MODE_INVITE_ONLY))
-        {
-            std::cout << "The channel is now on Invit Only Mode";
             _Mode = _Mode & MODE_USER_LIMIT;
-        }
-        else
-            MessageClient(client, "The channel is already on Invit Only Mode");
-    }
-    MessageClient(client, "You need the operator privilege to use this commande");
-}
-
-void Channel::GiveOperatorPrivilege(Client *client, Client *user)
-{
-    if (IsAnOperator(user))
-    {
-        if(!IsClientInChannel(client))
-            MessageClient(user, "This client is not in this channel");
-        else
-        {
-            _Operators.push_back(client);
-            std::cout << client->GetUsername() << "is now an operator" << std::endl;
-
-        }
     }
     else
-        MessageClient(user, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
-void Channel::RemoveOperator(Client *client, Client *user)
+
+void Channel::RemoveInviteOnlyMode(Client *client)
 {
-    if (IsAnOperator(user))
+    if (IsAnOperator(client))
     {
-        if(!IsClientInChannel(client))
-            MessageClient(user, "This client is not in this channel");
-        else
-        {
-             _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
-            std::cout << client->GetUsername() << "is no longer an operator in this channel" << std::endl;  
-        }
+        if(_Mode & MODE_INVITE_ONLY)
+            _Mode = _Mode ^ MODE_INVITE_ONLY;
     }
     else
-        MessageClient(user, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+}
+
+/*************************/
+/*      OPERATOR MODE    */
+/*************************/
+
+void Channel::GiveOperatorPrivilege(Client *client, Client *target)
+{
+    if (!IsClientInChannel(client))
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+    if (IsClientInChannel(target))
+        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+    _Operators.push_back(target);
+}
+
+void Channel::TakeOperatorPrivilege(Client *client, Client *target)
+{
+    if (!IsClientInChannel(client))
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+    if (IsClientInChannel(target))
+        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+    _Operators.erase(std::find(_Operators.begin(), _Operators.end(), target));;
 }
 
 bool Channel::IsAnOperator(Client *client)
@@ -186,20 +149,20 @@ bool Channel::IsAnOperator(Client *client)
     return true;
 }
 
-void Channel::SetOperatorMode(Client *client)
+/*************************/
+/*      USER MODE        */
+/*************************/
+
+//limit - check if limit is valid before function (int positiv)
+void Channel::SetUserLimit(Client *client, unsigned int limit)
 {
     if (IsAnOperator(client))
     {
-        if(!(_Mode & MODE_OPERATOR))
-        {
-            std::cout << "The channel is now on Invit Only Mode";
-            _Mode = _Mode & MODE_OPERATOR;
-        }
-        else
-            MessageClient(client, "The channel is already on Operator Mode");
+        if (_Mode & MODE_USER_LIMIT)
+            _UserLimit = limit;
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
 void Channel::SetUserLimitMode(Client *client)
@@ -207,32 +170,10 @@ void Channel::SetUserLimitMode(Client *client)
     if (IsAnOperator(client))
     {
         if (!(_Mode & MODE_USER_LIMIT))
-        {
-           std::cout << "The channel is now on User Limit Mode"<<std::endl;
             _Mode = _Mode & MODE_USER_LIMIT;
-        }
-        else
-            MessageClient(client, "The channel is already on User Limit Mode");
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
-}
-
-//limit max ? protect from int max + 1 ? Accept long ?
-void Channel::SetUserLimit(Client *client, unsigned int limit)
-{
-    if (IsAnOperator(client))
-    {
-        if (!(_Mode & MODE_USER_LIMIT))
-           MessageClient(client, "The channel is not on User Limit Mode");
-        else
-        {
-            std::cout << "The channel has now a limit of " << limit << " users";
-            _UserLimit = limit;
-        }
-    }
-    else
-        MessageClient(client, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
 void Channel::RemoveUserLimitMode(Client *client)
@@ -241,15 +182,29 @@ void Channel::RemoveUserLimitMode(Client *client)
     {
         if (_Mode & MODE_USER_LIMIT)
         {
-           std::cout << "The channel is not on User Limit Mode anymore"<<std::endl;
             _Mode = _Mode ^ MODE_USER_LIMIT;
             _UserLimit = 0;
         }
-        else
-            MessageClient(client, "The channel is not on UserLimit Mode, you can remove it");
+        // else msg can remove because not set
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
+       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+}
+
+/*********************/
+/*      KEY MODE    */
+/********************/
+
+//Key condition (10 cara / one letter / one digit ...)
+void Channel::SetKey(Client *client, std::string key)
+{
+   if (IsAnOperator(client))
+    {
+        if (_Mode & MODE_KEY)
+            _Key = key;
+    }
+    else
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
 void Channel::SetKeyMode(Client *client)
@@ -257,32 +212,10 @@ void Channel::SetKeyMode(Client *client)
     if (IsAnOperator(client))
     {
         if (!(_Mode & MODE_KEY))
-        {
-           std::cout << "The channel is now on Key Mode"<<std::endl;
             _Mode = _Mode & MODE_KEY;
-        }
-        else
-            MessageClient(client, "The channel is already on Key Mode");
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
-}
-
-//params for key (size, need letters and number ?)
-void Channel::SetKey(Client *client, std::string key)
-{
-   if (IsAnOperator(client))
-    {
-        if (!(_Mode & MODE_KEY))
-           MessageClient(client, "The channel is not on Key Mode");
-        else
-        {
-            std::cout << "The channel has now a key" << std::endl;
-            _Key = key;
-        }
-    }
-    else
-        MessageClient(client, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
 void Channel::RemoveKeyMode(Client *client)
@@ -291,43 +224,26 @@ void Channel::RemoveKeyMode(Client *client)
     {
         if (_Mode & MODE_KEY)
         {
-           std::cout << "The channel is not on Key Mode anymore"<<std::endl;
             _Mode = _Mode ^ MODE_KEY;
             _Key = "";
         }
-        else
-            MessageClient(client, "The channel is not on Key Mode, you can not remove it");
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
+       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
-void Channel::SetTopicMode(Client *client)
-{
-    if (IsAnOperator(client))
-    {
-        if (!((_Mode & MODE_TOPIC)))
-        {
-           std::cout << "The channel is now on Topic Mode"<<std::endl;
-            _Mode = _Mode & MODE_TOPIC;
-        }
-        else
-            MessageClient(client, "The channel is already on Topic Mode");
-    }
-    else
-        MessageClient(client, "You need the operator privilege to use this commande");
-}
+
+/***********************/
+/*      TOPIC MODE    */
+/**********************/
 
 //params for topic (size of the string)
 void Channel::SetTopic(Client *client, std::string topic)
 {
    if (IsAnOperator(client))
     {
-        if (!(_Mode & MODE_TOPIC))
-           MessageClient(client, "The channel is not on Topic Mode");
-        else
+        if (_Mode & MODE_TOPIC)
         {
-            std::cout << "The Topic of the channel is now "<< topic << std::endl;
             _Topic = topic;
             _AutorTopic = client;
             time_t timestamp;
@@ -335,7 +251,18 @@ void Channel::SetTopic(Client *client, std::string topic)
         }
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+}
+
+void Channel::SetTopicMode(Client *client)
+{
+   if (IsAnOperator(client))
+    {
+        if (!(_Mode & MODE_TOPIC))
+            _Mode = _Mode & MODE_TOPIC;
+    }
+    else
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
 void Channel::RemoveTopicMode(Client *client)
@@ -344,16 +271,17 @@ void Channel::RemoveTopicMode(Client *client)
     {
         if (_Mode & MODE_TOPIC)
         {
-           std::cout << "The channel is not on Topic Mode anymore"<<std::endl;
             _Mode = _Mode ^ MODE_TOPIC;
             _Topic = "";
         }
-        else
-            MessageClient(client, "The channel is not on Topic Mode, you can not remove it");
     }
     else
-        MessageClient(client, "You need the operator privilege to use this commande");
+       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));        
 }
+
+/*************************/
+/*      MESSAGE CLIENT    */
+/*************************/
 
 void MessageClient(Client *client, std::string message)
 {
