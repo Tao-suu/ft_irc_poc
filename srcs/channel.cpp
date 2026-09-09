@@ -32,6 +32,7 @@ void Channel::JoinChannel(Client *client, std::string key)
     if(_Mode & MODE_INVITE_ONLY && !IsClientInvited(client))
         throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
     AddClient(client);
+    //MessageOnChannel(_Clients, DFL_JOIN(client->GetUsername(), _Name));
     if (_Mode & MODE_TOPIC)
     {
         MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
@@ -50,7 +51,7 @@ void Channel::ExitChannel(Client *client)
 {
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
     if (IsAnOperator(client))
-         _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
+        _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
 }
 
 void Channel::KickClient(Client *client, Client *target)
@@ -62,6 +63,7 @@ void Channel::KickClient(Client *client, Client *target)
     if (!IsClientInChannel(client))
         throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
     ExitChannel(target);
+    
 }
 
 bool Channel::IsClientInChannel(Client *client) const
@@ -85,6 +87,7 @@ void Channel::InvitClient(Client *client, Client *target)
         throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     _Invitations.push_back(target);
     MessageClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
+ //    MessageClient(target, DFL_INVITE(client->GetUsername(), target->GetUsername(), _Name));
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -98,8 +101,8 @@ void Channel::SetInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if(!(_Mode & MODE_INVITE_ONLY))
-            _Mode = _Mode & MODE_USER_LIMIT;
+         _Mode = _Mode & MODE_USER_LIMIT;
+        //MessageOnChannel(_Clients, DFL_SETINVITEMODE(client->GetUsername(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -109,8 +112,8 @@ void Channel::RemoveInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if(_Mode & MODE_INVITE_ONLY)
-            _Mode = _Mode ^ MODE_INVITE_ONLY;
+        _Mode = _Mode ^ MODE_INVITE_ONLY;
+        //MessageOnChannel(_Clients, DFL_REMOVEINVITEMODE(client->GetUsername(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -286,5 +289,11 @@ void Channel::RemoveTopicMode(Client *client)
 void MessageClient(Client *client, std::string message)
 {
 	(void)client;
+	(void)message;
+}
+
+void MessageOnChannel(std::vector<Client*> clients, std::string message)
+{
+    (void)clients;
 	(void)message;
 }
