@@ -32,7 +32,7 @@ void Channel::JoinChannel(Client *client, std::string key)
     if(_Mode & MODE_INVITE_ONLY && !IsClientInvited(client))
         throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
     AddClient(client);
-    //MessageOnChannel(_Clients, DFL_JOIN(client->GetUsername(), _Name));
+    MessageListClients(_Clients, DFL_JOIN(client->GetUsername(), _Name));
     if (_Mode & MODE_TOPIC)
     {
         MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
@@ -54,7 +54,6 @@ void Channel::ExitClient(Client *client)
         _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
 }
 
-//not sure about the messages
 void Channel::KickClient(Client *client, Client *target)
 {
     if (!IsAnOperator(client))
@@ -64,6 +63,8 @@ void Channel::KickClient(Client *client, Client *target)
     if (!IsClientInChannel(client))
         throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
     ExitClient(target);
+    MessageClient(target, DFL_KICK(client->GetUsername(), target->GetUsername(), _Name));
+    MessageClient(client, DFL_KICK(client->GetUsername(), target->GetUsername(), _Name));
 }
 
 bool Channel::IsClientInChannel(Client *client) const
@@ -72,8 +73,6 @@ bool Channel::IsClientInChannel(Client *client) const
         return false;
     return true;
 }
-
-// command PASS to quit the channel
 
 /***********************/
 /*      INVITE MODE    */
@@ -89,7 +88,7 @@ void Channel::InvitClient(Client *client, Client *target)
         throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     _Invitations.push_back(target);
     MessageClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
- //    MessageClient(target, DFL_INVITE(client->GetUsername(), target->GetUsername(), _Name));
+    MessageClient(target, DFL_INVITE(client->GetUsername(), target->GetUsername(), _Name));
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -104,7 +103,7 @@ void Channel::SetInviteOnlyMode(Client *client)
     if (IsAnOperator(client))
     {
          _Mode = _Mode & MODE_USER_LIMIT;
-        //MessageOnChannel(_Clients, DFL_SETINVITEMODE(client->GetUsername(), _Name));
+        MessageListClients(_Clients, DFL_SETINVITEMODE(client->GetUsername(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -115,7 +114,7 @@ void Channel::RemoveInviteOnlyMode(Client *client)
     if (IsAnOperator(client))
     {
         _Mode = _Mode ^ MODE_INVITE_ONLY;
-        //MessageOnChannel(_Clients, DFL_REMOVEINVITEMODE(client->GetUsername(), _Name));
+        MessageListClients(_Clients, DFL_REMOVEINVITEMODE(client->GetUsername(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -134,7 +133,7 @@ void Channel::GiveOperatorPrivilege(Client *client, Client *target)
     if (IsClientInChannel(target))
         throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     _Operators.push_back(target);
-   // MessageOnChannel(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
+   MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
 }
 
 void Channel::TakeOperatorPrivilege(Client *client, Client *target)
@@ -146,7 +145,7 @@ void Channel::TakeOperatorPrivilege(Client *client, Client *target)
     if (IsClientInChannel(target))
         throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     _Operators.erase(std::find(_Operators.begin(), _Operators.end(), target));
-   // MessageOnChannel(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
+    MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
 }
 
 bool Channel::IsAnOperator(Client *client)
@@ -160,35 +159,27 @@ bool Channel::IsAnOperator(Client *client)
 /*      USER MODE        */
 /*************************/
 
-//limit - check if limit is valid before function (int positiv)
 void Channel::SetUserLimit(Client *client, unsigned int limit)
 {
-    if (IsAnOperator(client))
-    {
-        _UserLimit = limit;
-    //    MessageOnChannel(_Clients, DFL_SETUSERLIMIT(client->GetUsername, limmit, _Name));
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
-}
-
-void Channel::SetUserLimitMode(Client *client)
-{
+    std::ostringstream ss;
+    ss << limit;
     if (IsAnOperator(client))
     {
         _Mode = _Mode & MODE_USER_LIMIT;
-        
+        _UserLimit = limit;
+        MessageListClients(_Clients, DFL_SETUSERLIMIT(client->GetUsername(), ss.str(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
-void Channel::RemoveUserLimitMode(Client *client)
+void Channel::RemoveUserLimit(Client *client)
 {
     if (IsAnOperator(client))
     {
-         _Mode = _Mode ^ MODE_USER_LIMIT;
+        _Mode = _Mode ^ MODE_USER_LIMIT;
         _UserLimit = 0;
+        MessageListClients(_Clients, DFL_REMOVEUSERLIMITMODE(client->GetUsername(), _Name));
     }
     else
        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -198,38 +189,25 @@ void Channel::RemoveUserLimitMode(Client *client)
 /*      KEY MODE    */
 /********************/
 
-//Key condition (10 cara / one letter / one digit ...)
 void Channel::SetKey(Client *client, std::string key)
 {
    if (IsAnOperator(client))
     {
-        if (_Mode & MODE_KEY)
-            _Key = key;
+        _Key = key;
+        _Mode = _Mode & MODE_KEY;
+        MessageListClients(_Clients, DFL_SETKEY(client->GetUsername(), _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
-void Channel::SetKeyMode(Client *client)
+void Channel::RemoveKey(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (!(_Mode & MODE_KEY))
-            _Mode = _Mode & MODE_KEY;
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
-}
-
-void Channel::RemoveKeyMode(Client *client)
-{
-    if (IsAnOperator(client))
-    {
-        if (_Mode & MODE_KEY)
-        {
-            _Mode = _Mode ^ MODE_KEY;
-            _Key = "";
-        }
+        _Mode = _Mode ^ MODE_KEY;
+        _Key = "";
+        MessageListClients(_Clients, DFL_REMOVEKEYMODE(client->GetUsername(), _Name));
     }
     else
        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
@@ -240,43 +218,28 @@ void Channel::RemoveKeyMode(Client *client)
 /*      TOPIC MODE    */
 /**********************/
 
-//params for topic (size of the string)
 void Channel::SetTopic(Client *client, std::string topic)
 {
    if (IsAnOperator(client))
     {
-        if (_Mode & MODE_TOPIC)
-        {
-            _Topic = topic;
-            _AutorTopic = client;
-            time_t timestamp;
-            _TopicTime = time(&timestamp);
-        }
+        _Mode = _Mode & MODE_TOPIC;
+        _Topic = topic;
+        _AutorTopic = client;
+        time_t timestamp;
+        _TopicTime = time(&timestamp);
+        MessageListClients(_Clients, DFL_SETTOPIC(client->GetUsername(), topic, _Name));
     }
     else
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
 }
 
-void Channel::SetTopicMode(Client *client)
-{
-   if (IsAnOperator(client))
-    {
-        if (!(_Mode & MODE_TOPIC))
-            _Mode = _Mode & MODE_TOPIC;
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
-}
-
-void Channel::RemoveTopicMode(Client *client)
+void Channel::RemoveTopic(Client *client)
 {
     if (IsAnOperator(client))
     {
-        if (_Mode & MODE_TOPIC)
-        {
-            _Mode = _Mode ^ MODE_TOPIC;
-            _Topic = "";
-        }
+        _Mode = _Mode ^ MODE_TOPIC;
+        _Topic = "";
+        MessageListClients(_Clients, DFL_REMOVETOPICMODE(client->GetUsername(), _Name));
     }
     else
        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));        
@@ -292,7 +255,7 @@ void MessageClient(Client *client, std::string message)
 	(void)message;
 }
 
-void MessageOnChannel(std::vector<Client*> clients, std::string message)
+void MessageListClients(std::vector<Client*> clients, std::string message)
 {
     (void)clients;
 	(void)message;

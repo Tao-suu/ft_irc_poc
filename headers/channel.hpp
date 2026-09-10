@@ -6,6 +6,7 @@
 # include <iostream>
 # include <vector>
 # include <algorithm>
+# include <string>
 # include "Server.hpp"
 # include "numerics.h"
 # include "Error.hpp"
@@ -53,21 +54,18 @@ class Channel
         void TakeOperatorPrivilege(Client *client, Client *target);
         bool IsAnOperator(Client *client);
 
-        void SetUserLimitMode(Client *client);
         void SetUserLimit(Client *client, unsigned int limit);
-        void RemoveUserLimitMode(Client *client);
+        void RemoveUserLimit(Client *client);
 
-        void SetKeyMode(Client *client);
         void SetKey(Client *client, std::string key);
-        void RemoveKeyMode(Client *client);
+        void RemoveKey(Client *client);
        
-        void SetTopicMode(Client *client);
         void SetTopic(Client *client, std::string topic);
-        void RemoveTopicMode(Client *client);
+        void RemoveTopic(Client *client);
 };
 
 void MessageClient(Client *client, std::string message);
-void MessageOnChannel(std::vector<Client*> clients, std::string message);
+void MessageListClients(std::vector<Client*> clients, std::string message);
 
 
 /******************/
