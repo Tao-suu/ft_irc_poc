@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   numerics.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/09/08 12:53:34 by lbouchar         ###   ########.fr       */
+/*   Updated: 2026/09/09 15:17:54 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,22 @@
 # define RPL_TOPIC(client, channel, topic)				std::string("332 ") + client + " " + channel + ":" + topic
 # define RPL_TOPICWHOTIME(client, channel, nick, setat)	std::string("333 ") + client + " " + channel + " " + nick + " " + setat
 # define RPL_INVITING(client, nick, channel)            std::string("341 ") + client + " " + nick + " " + channel
+
+/*****MSG default*******/
+// doc say send messsage but not give it so i create those
+# define DFL_JOIN(client, channel)                      std::string client + " is joining the channel " + channel
+# define DFL_KICK(client, target, channel)              std::string client + " has kicked " + target + " to the channel " + channel
+
+# define DFL_INVITE(client, target, channel)            std::string client + " has invited " + target + " to the channel " + channel
+# define DFL_SETINVITEMODE(client, channel)             std::string client + " has set the Invite-Only to the channel " + channel
+# define DFL_REMOVEINVITEMODE(client, channel)          std::string client + " has remove the Invite-Only to the channel " + channel
+
+# define DFL_TAKEOPERATORPRIVILEGE(client, target, channel); client + " has set operator privilege " + target + " to the channel " + channel
+# define DFL_GIVEOPERATORPRIVIVEGE(client, target, channel); client + " has remove operator privilege " + target + " to the channel " + channel
+
+# define DFL_SETUSERLIMIT(client, limit, channel)      std::string client + " has set the user limit at " + limit + " to the channel " + channel
+# define DFL_SETUSERLIMITMODE(client, channel)         std::string client + " has set the User limit to the channel " + channel
+# define DFL_REMOVEUSERLIMITMODE(client, channel)      std::string client + " has remove the User limit to the channel " + channel
 
 /****ERR****/
 

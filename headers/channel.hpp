@@ -67,7 +67,7 @@ class Channel
 };
 
 void MessageClient(Client *client, std::string message);
-
+void MessageOnChannel(std::vector<Client*> clients, std::string message);
 
 
 /******************/
