@@ -40,7 +40,7 @@ class Channel
 
         void JoinChannel(Client *client, std::string key);
         void AddClient(Client *client);
-        void ExitChannel(Client *client);
+        void ExitClient(Client *client);
         void KickClient(Client *operators, Client *client);
         bool IsClientInChannel(Client *client) const;
 

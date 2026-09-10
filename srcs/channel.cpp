@@ -46,7 +46,7 @@ void Channel::AddClient(Client *client)
         _Invitations.erase(std::find(_Invitations.begin(), _Invitations.end(), client));
 }
 
-void Channel::ExitChannel(Client *client)
+void Channel::ExitClient(Client *client)
 {
     _Clients.erase(std::find(_Clients.begin(), _Clients.end(), client));
     if (IsAnOperator(client))
@@ -61,7 +61,7 @@ void Channel::KickClient(Client *client, Client *target)
         throw Error(*client, ERR_USERNOTINCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
     if (!IsClientInChannel(client))
         throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
-    ExitChannel(target);
+    ExitClient(target);
 }
 
 bool Channel::IsClientInChannel(Client *client) const
