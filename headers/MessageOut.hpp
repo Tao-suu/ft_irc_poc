@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Message.hpp                                        :+:      :+:    :+:   */
+/*   MessageIn.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,45 +10,45 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MESSAGE_HPP
-# define MESSAGE_HPP
+# pragma once
 
-# include <map>
 # include <vector>
 # include <string>
 # include <iostream>
 
-class Message {
+# include "client.hpp"
+
+class Client;
+
+class MessageOut {
 
 private:
 	// Attributes
+	std::string				message_;
+	std::vector<int>		targets_;
 
 	// Methods
 
 public:
 	// Attributes
-	std::map<std::string, std::string>		tags;
-	std::string								cmdName;
-	std::vector< std::vector<std::string> >	args;
 
 	// Constructors / Destructor
-	Message(std::map<std::string, std::string> tags = std::map<std::string, std::string>(),
-		std::string cmdName = "",
-		std::vector< std::vector<std::string> > args = std::vector< std::vector<std::string> >());
-	Message(Message const &other);
-	~Message(void);
+	MessageOut( void );
+	MessageOut( std::string message, std::vector<int> clients = std::vector<int>() );
+	MessageOut( MessageOut const &other );
+	~MessageOut( void );
 
 	// Operators overload
-	Message	&operator=(Message const &other);
+	MessageOut	&operator=( MessageOut const &other );
 
 	// Getters
+	const std::vector<int>		getTargets( void ) const;
+	const std::string			getMessage( void ) const;
 
 	// Setters
+	void						setMessage( std::string message );
+	void						addTarget( int fd );
 
 	// Methods
-
+	void						send( void );
 };
-
-std::ostream&	operator<<(std::ostream& os, Message& msg);
-
-#endif

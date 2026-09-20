@@ -45,38 +45,58 @@ void    Server::run ( void )
 
     while (1)
     {
-        // errno = 0;
+        /*      Setup of what we want to look     */
+        for (size_t i = 0; i < pollfds_.size(); i++) {
+            if (pollfds_[i].fd == servFd_) { pollfds_[i].events = POLLIN; continue; }
+            pollfds_[i].events = POLLIN;
+            if (Clients_.find(pollfds_[i].fd) != Clients_.end() && !Clients_[pollfds_[i].fd]._out_buffer.empty()) 
+                pollfds_[i].events |= POLLOUT;
+        }
+
+        /*      Wait and get fd info     */
         int ret = poll(&pollfds_[0], pollfds_.size(), -1);
         if (ret == -1)
         {
             if (errno == EINTR) continue;
-            else break;
+            break;      // Fatal error, stop server
         }
 
-        for (unsigned int i = 0; i < pollfds_.size(); i++)
+        /*      Dispatch: read, write and/or quit    */
+        size_t  n = pollfds_.size();
+        for (size_t i = 0; i < n; i++)
         {
-            if (pollfds_[i].revents == 0) continue;     //  le client/serveur n'a fait aucun action ou recu aucune acction
+            if (pollfds_[i].revents == 0) continue;     //  le client/serveur n'a fait aucun action ou recu aucune action
             
-            if (pollfds_[i].fd == servFd_ && pollfds_[i].revents == POLLIN) { acceptNewClient(); }     // Le serveur recoit un nouveau client
-
-            else {
-                if (pollfds_[i].revents & (POLLHUP | POLLERR)) { toRemove_.push_back(pollfds_[i].fd); }   // Supprimer le client
-                else if (pollfds_[i].revents & POLLIN) { handleClientData(pollfds_[i].fd); }   // Recuperer les donnees
+            if (pollfds_[i].fd == servFd_) {
+                if (pollfds_[i].revents & POLLIN) { acceptNewClient(); }     // Le serveur recoit un nouveau client
+                continue ;
             }
+            if (pollfds_[i].revents & POLLIN) { handleClientData(pollfds_[i].fd); }   // Recuperer les donnees
+            if (pollfds_[i].revents & POLLOUT) { handleClientWrite(pollfds_[i].fd); }   // Recuperer les donnees
+            if (pollfds_[i].revents & (POLLHUP | POLLERR | POLLNVAL)) { toRemove_.push_back(pollfds_[i].fd); }   // Supprimer le client
         }
-        for (unsigned int i = 0; i < toRemove_.size(); i++)
+
+        /*      Remove clients and close fd      */
+        for (size_t i = 0; i < toRemove_.size(); i++)
         {
             int fd = toRemove_[i];
+            if (Clients_.find(fd) == Clients_.end()) continue ;
             Clients_[fd]._in_buffer.erase();
+            Clients_.erase(fd);
             close(fd);
             std::cout << "client disconnected\tfd = " << fd << std::endl;
             for (unsigned int j = 0; j < pollfds_.size(); j++)
             {
-                if (pollfds_[j].fd == fd) pollfds_.erase(pollfds_.begin() + j);
-                break;
+                if (pollfds_[j].fd == fd) {
+                    pollfds_.erase(pollfds_.begin() + j); 
+                    break;
+                }
             }
         }
-        toRemove_.clear();            
+        toRemove_.clear();
+
+        /*      append message in client buffer     */
+        send_all();          
     }
 }
 
@@ -100,6 +120,7 @@ void                Server::acceptNewClient( void )
 
     int fd = accept(servFd_, (struct sockaddr*)&addr, &len);
     if (fd == -1) return;
+    fcntl(fd, F_SETFL, O_NONBLOCK);
 
     pollfd new_fd;
     new_fd.fd = fd;
@@ -123,14 +144,8 @@ void                Server::handleClientData( int fd )
     std::string buff(buffer);
     std::cout << "client fd(" << fd << ") buffer_in += " << buff << std::endl;
 
-    if (bytes == 0) {toRemove_.push_back(fd);}
-    if (bytes > 0)  Clients_[fd]._in_buffer += buffer; 
-    if (bytes == -1)
-    {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
-        std::cout << "recv failed" << std::endl;
-        return ;
-    }
+    if (bytes <= 0) {toRemove_.push_back(fd); return ;}
+    if (bytes > 0)  Clients_[fd]._in_buffer.append(buffer, bytes); 
 
     size_t  pos;
     while ((pos = Clients_[fd]._in_buffer.find(SEPARATOR)) != std::string::npos)
@@ -138,24 +153,34 @@ void                Server::handleClientData( int fd )
         std::string line = Clients_[fd]._in_buffer.substr(0, pos);
         Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + SEPARATOR.size(), Clients_[fd]._in_buffer.size() - (pos + SEPARATOR.size()));
         std::cout << "client fd(" << fd << ") : " << line << std::endl;
-		if (!cv.validateContent(line))
-			return ;
-		Message	msg = cv.parseContent(line);
+		if (!cv.validateContent(line)) continue ;
+		MessageIn	msg = cv.parseContent(line);
 		exec(msg, Clients_[fd]);
     }
 }
-void				Server::exec(Message &msg, Client& sender)
+void                Server::handleClientWrite( int fd ) {
+    if (std::find(toRemove_.begin(), toRemove_.end(), fd) != toRemove_.end()) return ; 
+    std::string& out = Clients_[fd]._out_buffer;
+    if (out.empty()) return;
+    ssize_t n = ::send(fd, out.c_str(), out.size(), 0);
+    if (n <= 0) { toRemove_.push_back(fd); return; }
+    out.erase(0, n);
+}
+
+
+void				Server::exec(MessageIn &msg, Client& sender)
 {
 	try {
-		if (msg.cmdName != "PASS" && msg.cmdName != "NICK" && msg.cmdName != "USER" && !sender.pass_ok)
-			throw Error(sender, ERR_NOTREGISTERED((sender.GetNickname().empty() ? "*" : sender.GetNickname())));
 		if (msg.cmdName == "PASS") pass(msg, sender);
 		else if (msg.cmdName == "NICK") nick(msg, sender);
 		else if (msg.cmdName == "USER") user(msg, sender);
+        // else if (msg.cmdName == "PING") ping(msg, sender);
 		else std::cerr << "PUTE" << std::endl;
 	} catch (Error &e) {
-		send_error(e);
-	}
+        e._msg += "\r\n";
+        MessageOut  err(e._msg); err.addTarget(e._client.GetFd());
+		message_stack.push_front(err);
+    }
 }
 
 void				Server::send_error(Error &e)
@@ -163,76 +188,123 @@ void				Server::send_error(Error &e)
 	e._msg += "\r\n";
 	send(e._client.GetFd(), e._msg.c_str(), e._msg.size(), 0);
 }
-void				Server::send_message(Client &cl, std::string msg)
-{
-	msg += "\r\n";
-	std::cout << "to client(" << cl.GetFd() << "): " << msg; 
-	send(cl.GetFd(), msg.c_str(), msg.size(), 0);
-}
-
 void				Server::sendWelcome(Client &cl)
 {
-	cl.registered = 1;
-	send_message(cl, RPL_WELCOME(cl.GetNickname()));
-	send_message(cl, RPL_YOURHOST(cl.GetNickname(), "ft_irc", "version"));
-	send_message(cl, RPL_CREATED(cl.GetNickname(), "datetime"));
-	send_message(cl, RPL_MYINFO(cl.GetNickname(), "ft_irc", "version", "modes"));
+    std::cout << "sendWelcome" << std::endl;
+	cl.registered = true;
+    std::string     message = RPL_WELCOME(cl.GetNickname()) + "\r\n" +
+                            RPL_YOURHOST(cl.GetNickname(), "ft_irc", "version") + "\r\n" +
+                            RPL_CREATED(cl.GetNickname(), "datetime") + "\r\n" + 
+                            RPL_MYINFO(cl.GetNickname(), "ft_irc", "version", "modes") + "\r\n";
+    std::vector<int>    targets; targets.push_back(cl.GetFd());
+    message_stack.push_front(MessageOut(message, targets));                     
 }
 
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
 const char* Server::ServerException::what() const throw() {return message_.c_str();}
 Server::ServerException::~ServerException() throw() {}
 
+
+/*******************************/
+/* CHANNEL AND CLIENT FUNCTION */
+/*******************************/
+
 bool 				Server::is_nickname_exist(std::string nick) {
 	for (std::map<int, Client>::iterator i = Clients_.begin(); i != Clients_.end(); i++)
 		if ((*i).second.GetNickname() == nick) return true;
 	return false; 
 }
+bool                Server::is_channel_exist(std::string name) {
+    for (std::vector<Channel>::iterator it = Channels_.begin(); it != Channels_.end(); it++) {
+        if ((*it).getName() == name) return true;
+    }
+    return false;
+}
+std::vector<Channel>::iterator Server::get_channel(std::string name) {
+    for (std::vector<Channel>::iterator it = Channels_.begin(); it != Channels_.end(); it++) {
+        if ((*it).getName() == name) return it;
+    }
+    return Channels_.end();
+}
 
-void				Server::pass(Message &msg, Client& cl) {
-	if (msg.args.size() < 1 || msg.args[0].size() < 1)
+void                Server::send_all( void ) {
+    while (!message_stack.empty()) {
+        MessageOut& message = message_stack.back();
+        std::vector<int>    targets = message.getTargets();
+        for (size_t i = 0; i < targets.size(); i++) {
+            std::map<int, Client>::iterator it = Clients_.find(targets[i]);
+            if (it != Clients_.end())
+                it->second._out_buffer += message.getMessage();
+        }
+        message_stack.pop_back();
+    }
+}
+
+
+
+
+
+/****************************/
+/*        IRC COMMAND       */
+/****************************/
+
+void				Server::pass(MessageIn &msg, Client& cl) {
+    /* ERR MANAGE */
+    if (msg.args.size() < 1 || msg.args[0].size() < 1)
 		throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PASS"));
 	if (cl.registered)
 		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	if (msg.args[0][0] != this->pass_)
 		throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-	cl.pass_ok = true;
+
+    /* COMMAND CORE */
+    cl.pass_ok = true;
+    if (cl.user_ok && cl.nick_ok) sendWelcome(cl); // Login ended
 }
 
-void				Server::nick(Message &msg, Client& cl) {
-	if (cl.registered == false)
-	{
-		if (cl.cap_process == 1)
-			throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-		cl.cap_process = 1;
-	}
+void				Server::nick(MessageIn &msg, Client& cl) {
+	/* ERR MANAGE */
 	if (msg.args.size() < 1 || msg.args[0].size() < 1)
 		throw Error(cl, ERR_NONICKNAMEGIVEN((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	else if (msg.args[0][0].find(':') != std::string::npos || msg.args[0][0].find(' ') != std::string::npos)
 		throw Error(cl, ERR_ERRONEUSNICKNAME((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
 	else if (is_nickname_exist(msg.args[0][0]) && msg.args[0][0] != cl.GetNickname())
 		throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
-	cl.SetNickname(msg.args[0][0]);
-	if (cl.registered) {
+	
+    /* COMMAND CORE */
+    cl.SetNickname(msg.args[0][0]); // All case
+	if (cl.registered) {    // Change Nickname case
 		/*Broadcast new name to his channel and himself*/
-	}
-	if (cl.cap_process == 1 && cl.pass_ok)
+	} else { cl.nick_ok = true; }
+	if (!cl.registered && cl.pass_ok && cl.user_ok) // Login ended
 		sendWelcome(cl);
 }
 
-void				Server::user(Message &msg, Client& cl) {
-	if (cl.registered == false)
-	{
-		if (cl.cap_process == 1)
-			throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-		cl.cap_process = 1;
-	}
+void				Server::user(MessageIn &msg, Client& cl) {
+	/* ERR MANAGE */
 	if (msg.args.size() < 4)
-		throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "USER"));
+	    throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "USER"));
 	if (cl.registered)
 		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-	cl.SetUsername(msg.args[0][0]);
-	cl.SetRealname(msg.args[3][0]);
-	if (cl.cap_process == 1 && cl.pass_ok)
-		sendWelcome(cl);
+        
+    /* COMMAND CORE */
+    cl.SetRealname(msg.args[3][0]);
+    cl.SetUsername(msg.args[0][0]);
+    cl.user_ok = true;
+    if (cl.pass_ok && cl.nick_ok) sendWelcome(cl); // Login endeded
 }
+
+/* WIP IPW PWI PIW IWP*/
+/*
+void                Server::join(MessageIn& msg, Client& cl) {
+    if (msg.args.size() < 2)
+            throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "JOIN"));
+    if (!cl.registered)
+            throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+}
+*/
+
+// void                Server::ping(MessageIn& msg, Client& cl) {
+//     if (msg.args.size() < 2)
+//             throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PING"));
+// }

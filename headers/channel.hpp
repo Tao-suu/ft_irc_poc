@@ -17,6 +17,8 @@
 # define  MODE_KEY          (1 << 1)
 # define  MODE_USER_LIMIT   (1 << 2)
 
+class Server;
+
 class Channel
 {
     private :
@@ -62,6 +64,9 @@ class Channel
        
         void SetTopic(Client *client, std::string topic);
         void RemoveTopic(Client *client);
+
+        /************** GETTER **************/
+        std::string             getName() const;
 };
 
 void MessageClient(Client *client, std::string message);

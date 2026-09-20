@@ -13,12 +13,15 @@ class Client
 
 		bool		nick_set;
 		
-	public:
+        public:
         std::string _in_buffer;
+        std::string _out_buffer;
 
 		bool		pass_ok;
+        bool        user_ok;
+        bool        nick_ok;
+
 		bool		registered;
-		char		cap_process;
 
         Client( int fd = 0 );
         Client(const Client &o);

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Message.cpp                                        :+:      :+:    :+:   */
+/*   MessageIn.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,27 +10,27 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Message.hpp"
+#include "MessageIn.hpp"
 
 /******************/
 /* Public methods */
 /******************/
 // Constructors / Destructor
-Message::Message(std::map<std::string, std::string> tags,
+MessageIn::MessageIn(std::map<std::string, std::string> tags,
 		std::string cmdName,
 		std::vector< std::vector<std::string> > args): tags(tags), cmdName(cmdName), args(args)
 {
 }
-Message::Message(Message const &other)
+MessageIn::MessageIn(MessageIn const &other)
 {
 	*this = other;
 }
-Message::~Message(void)
+MessageIn::~MessageIn(void)
 {
 }
 
 // Operators overload
-Message	&Message::operator=(Message const &other)
+MessageIn	&MessageIn::operator=(MessageIn const &other)
 {
 	if (&other != this)
 	{
@@ -40,7 +40,7 @@ Message	&Message::operator=(Message const &other)
 	}
 	return (*this);
 }
-std::ostream&	operator<<(std::ostream& os, Message& msg)
+std::ostream&	operator<<(std::ostream& os, MessageIn& msg)
 {
 	os << "cmd: " << msg.cmdName << std::endl;
 	os << "tags:" << std::endl;

@@ -14,16 +14,20 @@
 #include <cstring>
 #include <cerrno>
 #include <iostream>
+#include <stack>
 
 #include "client.hpp"
 #include "CommandValidator.hpp"
 #include "Error.hpp"
 #include "numerics.h"
+#include "channel.hpp"
+#include "MessageOut.hpp"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
 
 class Error;
+class Channel;
 
 class Server
 {
@@ -42,6 +46,7 @@ public:
 
     void                acceptNewClient( void );
     void                handleClientData( int fd );
+    void                handleClientWrite( int fd );
 
 private:
     int             port_;
@@ -54,26 +59,33 @@ private:
     std::vector<int>        toRemove_;
     std::map<int, Client>   Clients_;
 
+    std::vector<Channel>    Channels_;
+
 	CommandValidator	cv;
 
-    Server( void );
-	void				exec(Message &msg, Client& sender);
+    std::deque<MessageOut>  message_stack;
 
-	void				pass(Message &msg, Client& cl);
-	void				nick(Message &msg, Client& cl);
-	void				user(Message &msg, Client& cl);
+    Server( void );
+	void				exec(MessageIn &msg, Client& sender);
+
+	void				pass(MessageIn &msg, Client& cl);
+	void				nick(MessageIn &msg, Client& cl);
+	void				user(MessageIn &msg, Client& cl);
 	
-	// void				join();
+	void				join(MessageIn& msg, Client& cl);
 	// void				kick();
 	// void				invite();
 	// void				mode();
 	// void				privmsg();
-	// void				
+	void				ping(MessageIn& msg, Client& cl);
 
-	bool 				is_nickname_exist(std::string nick);
-	void				send_error(Error &e);
-	void				send_message(Client &cl, std::string msg);
-	void				sendWelcome(Client &cl);
+	bool 				            is_nickname_exist(std::string nick);
+	void				            send_error(Error &e);
+	void				            sendWelcome(Client &cl);
+    void                            send_all( void );
+
+    bool                            is_channel_exist(std::string name);
+    std::vector<Channel>::iterator  get_channel(std::string name);
 
 public:
     class ServerException: public std::exception

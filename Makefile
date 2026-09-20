@@ -34,8 +34,9 @@ SRCS_RAW			= main.cpp \
 					  channel.cpp \
 					  client.cpp \
 					  Server.cpp \
-					  Message.cpp \
-					  Error.cpp
+					  MessageIn.cpp \
+					  Error.cpp \
+					  MessageOut.cpp
 SRCS				= $(addprefix $(SRCS_FOLDER), $(SRCS_RAW))
 OBJS_RAW			= $(SRCS_RAW:.cpp=.o)
 OBJS				= $(addprefix $(OBJS_FOLDER), $(OBJS_RAW))

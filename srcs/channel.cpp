@@ -4,16 +4,28 @@
 /* CANONICAL FORM */
 /******************/
 
-Channel::Channel(){};
+Channel::Channel(): _Name(""), _UserLimit(0), _Mode(0), _Server(0), _AutorTopic(0) {};
 
-Channel::Channel(std::string name, Server *server) : _Name(name), _Server(server) {}
+Channel::Channel(std::string name, Server *server) : _Name(name), _UserLimit(0), _Mode(0), _Server(server), _AutorTopic(0) {}
 
 Channel::Channel(const Channel &copy) {*this = copy;}
 
 Channel &Channel::operator=(const Channel &src)
 {
     if (this != &src)
-    { *this = src; }
+    {
+        _Name = src._Name;
+        _Clients = src._Clients;
+        _Invitations = src._Invitations;
+        _Operators = src._Operators;
+        _UserLimit = src._UserLimit;
+        _Key = src._Key;
+        _Topic = src._Topic;
+        _Mode = src._Mode;
+        _Server = src._Server;
+        _AutorTopic = src._AutorTopic;
+        _TopicTime = src._TopicTime;
+    }
     return (*this);
 }
 
@@ -260,3 +272,9 @@ void MessageListClients(std::vector<Client*> clients, std::string message)
     (void)clients;
 	(void)message;
 }
+
+/*************************/
+/*        GETTER         */
+/*************************/
+
+std::string     Channel::getName() const { return this->_Name; }

@@ -2,11 +2,18 @@
 
 Client::Client(int fd): _fd(fd) {
 	pass_ok = false;
+    nick_ok = false;
+    user_ok = false;
 	registered = false;
-	cap_process = 0;
 }
 
-Client::Client( const Client& o ): _fd(o._fd), _IP(o._IP), _nickname(o._nickname), _username(o._username) {}
+Client::Client( const Client& o ): _fd(o._fd), _IP(o._IP), _nickname(o._nickname), _username(o._username) {
+    pass_ok = o.pass_ok;
+    nick_ok = o.nick_ok;
+    user_ok = o.user_ok;
+	registered = o.registered;
+    _realname = o._realname;
+}
 
 Client::~Client( void ) {}
 
@@ -19,8 +26,9 @@ Client& Client::operator=( const Client& o )
         _username = o._username;
         _IP = o._IP;
         pass_ok = o.pass_ok;
+        nick_ok = o.nick_ok;
+        user_ok = o.user_ok;
         registered = o.registered;
-        cap_process = o.cap_process;
     }
     return *this;
 }
