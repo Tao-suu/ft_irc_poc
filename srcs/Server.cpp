@@ -143,8 +143,7 @@ void                Server::handleClientData( int fd )
 
     ssize_t bytes = recv(fd, buffer, 2048, 0);
 
-    std::string buff(buffer);
-    std::cout << "client fd(" << fd << ") buffer_in += " << buff << std::endl;
+    std::cout << "client fd(" << fd << ") buffer_in += " << std::string(buffer, bytes) << std::endl;
 
     if (bytes <= 0) {toRemove_.push_back(fd); return ;}
     if (bytes > 0)  Clients_[fd]._in_buffer.append(buffer, bytes); 
