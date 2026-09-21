@@ -325,7 +325,7 @@ bool		Validator::print_syntax_error(void)
 }
 bool			Validator::find_nb_char(int mask, int min, int max)
 {
-	long long	val_char_mask;
+	int			val_char_mask;
 	int			i;
 
 	i = 0;
