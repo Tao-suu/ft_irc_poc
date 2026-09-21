@@ -48,6 +48,10 @@ public:
     void                handleClientData( int fd );
     void                handleClientWrite( int fd );
 
+    void                push_message( const MessageOut& m );
+
+    void                broadcastToPeer( Client& cl, const std::string& message );
+
 private:
     int             port_;
     std::string     pass_;
@@ -80,7 +84,6 @@ private:
 	void				ping(MessageIn& msg, Client& cl);
 
 	bool 				            is_nickname_exist(std::string nick);
-	void				            send_error(Error &e);
 	void				            sendWelcome(Client &cl);
     void                            send_all( void );
 

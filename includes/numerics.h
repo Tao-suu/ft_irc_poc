@@ -67,4 +67,10 @@
 # define ERR_BADCHANNELKEY(client, channel)				std::string("475 ") + client + " " + channel + " :Cannot join channel - Bad channel key"
 # define ERR_CHANOPRIVSNEEDED(client, channel)          std::string("482 ") + client + " " + channel + " :You're not channel operator"
 
+/*****SOURCE PREFIX*****/
+# define PREFIX(nick, user, host)                       std::string(":") + nick + "!" + user + "@" + host
+
+/*****COMMAND ECHO*****/
+# define MSG_NICK(prefix, newnick)                      prefix + " NICK :" + newnick
+
 #endif

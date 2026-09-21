@@ -12,7 +12,6 @@
 
 CC 					= c++
 CFLAGS				= -Wall -Wextra -Werror -std=c++98
-LIBS_FLAGS			= -lreadline
 
 NAME				= ircserv
 

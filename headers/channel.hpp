@@ -64,13 +64,14 @@ class Channel
        
         void SetTopic(Client *client, std::string topic);
         void RemoveTopic(Client *client);
+        
+        void MessageClient(Client *client, std::string message);
+        void MessageListClients(std::vector<Client*> clients, std::string message);
 
         /************** GETTER **************/
+        std::vector<Client*>    getClients() const;
         std::string             getName() const;
-};
-
-void MessageClient(Client *client, std::string message);
-void MessageListClients(std::vector<Client*> clients, std::string message);
+};        
 
 
 /******************/

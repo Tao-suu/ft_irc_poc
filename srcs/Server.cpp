@@ -104,6 +104,7 @@ void    Server::run ( void )
 int                 Server::get_port( void ) const {return port_;}
 const std::string&  Server::get_password( void ) const {return pass_;}
 const std::string   Server::get_ip( void ) const { return std::string(inet_ntoa(addr_.sin_addr)); }
+void                Server::push_message( const MessageOut& m ) { message_stack.push_front(m); }
 
 
 std::ostream&   operator<<(std::ostream& os, const Server& s)
@@ -129,9 +130,10 @@ void                Server::acceptNewClient( void )
     pollfds_.push_back(new_fd);
 
     Clients_[fd] = Client(fd);
+    Clients_[fd].SetIpAdd(std::string(inet_ntoa(addr.sin_addr)));
 	if (pass_.empty())
 		Clients_[fd].pass_ok = true;
-    std::cout << "new client fd = " << fd << "\taddr_ = " << inet_ntoa(addr.sin_addr) << std::endl;
+    std::cout << "new client fd = " << fd << "\taddr_ = " << Clients_[fd].GetIP() << std::endl;
 }
 
 void                Server::handleClientData( int fd )
@@ -183,11 +185,6 @@ void				Server::exec(MessageIn &msg, Client& sender)
     }
 }
 
-void				Server::send_error(Error &e)
-{
-	e._msg += "\r\n";
-	send(e._client.GetFd(), e._msg.c_str(), e._msg.size(), 0);
-}
 void				Server::sendWelcome(Client &cl)
 {
     std::cout << "sendWelcome" << std::endl;
@@ -199,6 +196,21 @@ void				Server::sendWelcome(Client &cl)
     std::vector<int>    targets; targets.push_back(cl.GetFd());
     message_stack.push_front(MessageOut(message, targets));                     
 }
+
+void                Server::broadcastToPeer( Client& cl, const std::string& message ) {
+    MessageOut  m(message + SEPARATOR);
+
+    m.addTarget(cl.GetFd());
+    for (std::vector<Channel>::iterator it = Channels_.begin(); it != Channels_.end(); it++) {
+        if (!it->IsClientInChannel(&cl)) continue ;
+        std::vector<Client*> members = it->getClients();
+        for (size_t i = 0; i < members.size(); i++) {
+            if (members[i]) m.addTarget(members[i]->GetFd());
+        }
+    }
+    push_message(m);
+}
+
 
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
 const char* Server::ServerException::what() const throw() {return message_.c_str();}
@@ -272,9 +284,10 @@ void				Server::nick(MessageIn &msg, Client& cl) {
 		throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
 	
     /* COMMAND CORE */
+    std::string oldNick = cl.GetNickname();
     cl.SetNickname(msg.args[0][0]); // All case
 	if (cl.registered) {    // Change Nickname case
-		/*Broadcast new name to his channel and himself*/
+        broadcastToPeer(cl, MSG_NICK(PREFIX(oldNick, cl.GetUsername(), cl.GetIP()), msg.args[0][0]));
 	} else { cl.nick_ok = true; }
 	if (!cl.registered && cl.pass_ok && cl.user_ok) // Login ended
 		sendWelcome(cl);

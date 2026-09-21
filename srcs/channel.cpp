@@ -261,20 +261,28 @@ void Channel::RemoveTopic(Client *client)
 /*      MESSAGE CLIENT    */
 /*************************/
 
-void MessageClient(Client *client, std::string message)
+void    Channel::MessageClient(Client *client, std::string message)
 {
-	(void)client;
-	(void)message;
+	if (!_Server || !client) return ;
+
+    MessageOut m(message + SEPARATOR);
+    m.addTarget(client->GetFd());
+    _Server->push_message(m);
 }
 
-void MessageListClients(std::vector<Client*> clients, std::string message)
+void Channel::MessageListClients(std::vector<Client*> clients, std::string message)
 {
-    (void)clients;
-	(void)message;
+    if (!_Server) return ;
+    MessageOut m(message + SEPARATOR);
+    for (size_t i = 0; i < clients.size(); i++)
+        if (clients[i])
+            m.addTarget(clients[i]->GetFd());
+    _Server->push_message(m);
 }
 
 /*************************/
 /*        GETTER         */
 /*************************/
 
-std::string     Channel::getName() const { return this->_Name; }
+std::string             Channel::getName() const { return this->_Name; }
+std::vector<Client*>    Channel::getClients() const { return this->_Clients; }
