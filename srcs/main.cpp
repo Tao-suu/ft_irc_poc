@@ -15,17 +15,20 @@ bool args_valid(int argc, char **argv, int &port) {
     }
 
     std::string port_val = argv[1];
+    if (port_val.size() > 5) {
+        std::cerr << "invalid port\n";
+        return false;
+    }
     for (size_t i = 0; i < port_val.size(); i++) 
         if (!::isdigit(port_val[i])) {
             std::cerr << "invalid port\n";
             return false;
         }
-
     port = ::atoi(port_val.c_str());
     if (port < 1 || port > 65535) {
         std::cerr << "port out of range\n";
         return false;
-    } 
+    }
 
     return true;
 }
@@ -46,7 +49,9 @@ int main( int argc, char **argv )
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
+        return 1;
     }
     
     std::cout << server.get_ip() << std::endl;
+    return 0;
 }
