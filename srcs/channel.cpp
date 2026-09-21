@@ -4,7 +4,7 @@
 /* CANONICAL FORM */
 /******************/
 
-Channel::Channel(): _Name(""), _UserLimit(0), _Mode(0), _Server(0), _AutorTopic(0) {};
+Channel::Channel(): _Name(""), _UserLimit(0), _Mode(0), _Server(0), _AutorTopic(0) {}
 
 Channel::Channel(std::string name, Server *server) : _Name(name), _UserLimit(0), _Mode(0), _Server(server), _AutorTopic(0) {}
 
@@ -29,7 +29,7 @@ Channel &Channel::operator=(const Channel &src)
     return (*this);
 }
 
-Channel::~Channel(){};
+Channel::~Channel(){}
 
 /*************************/
 /*     MANAGE CLIENTS    */
