@@ -14,10 +14,13 @@
 # define VALIDATOR_HPP
 
 # include <iostream>
+# include <algorithm>
 # include <cstdlib> // EXIT_FAILURE
 # include <sstream> // stringstream
 # include "validator.h"
 # include "MessageIn.hpp"
+
+# define PARSE_DEBUG false
 
 class Validator {
 

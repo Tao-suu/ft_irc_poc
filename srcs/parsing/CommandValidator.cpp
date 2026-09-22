@@ -52,7 +52,7 @@ bool	CommandValidator::cv_val_param_middle(void)
 	old_cursor = this->cursor;
 	this->pre_lexer_rule("cv_val_param_middle");
 	if (!this->find_nb_char(C_PARAM_VALUE, 1, -1))
-		return (post_lexer_rule("cv_val_param_middle", old_cursor, false));
+		return (post_lexer_rule("cv_val_param_middle", old_cursor, true));
 	while (42)
 	{
 		// NO : so param is finished, we can quit
@@ -84,12 +84,14 @@ bool	CommandValidator::cv_val_param_end(void)
 bool	CommandValidator::cv_val_parameters(void)
 {
 	size_t	old_cursor;
+	// size_t	cursor_ws;
 
 	old_cursor = this->cursor;
 	this->pre_lexer_rule("cv_val_parameters");
 	while (42)
 	{
 		// NO WS so no other param, everything is ok
+		// cursor_ws = this->cursor;
 		if (!this->global_val_ws())
 			break ;
 		if (this->find_string(":"))
@@ -99,7 +101,11 @@ bool	CommandValidator::cv_val_parameters(void)
 			return (post_lexer_rule("cv_val_parameters", old_cursor, this->cv_val_param_end()));
 		}
 		if (!this->cv_val_param_middle())
+		{
+			// this->cursor = cursor_ws;
+			// break ;
 			return (post_lexer_rule("cv_val_parameters", old_cursor, false));
+		}
 	}
 	return (post_lexer_rule("cv_val_parameters", old_cursor, true));
 }

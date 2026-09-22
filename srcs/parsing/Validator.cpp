@@ -187,7 +187,8 @@ inline std::vector<std::string> split(const std::string& s, char del) {
 	std::string					buff;
 
 	while (getline(ss, buff, del))
-		splitted.push_back(buff);
+		if (!buff.empty())
+			splitted.push_back(buff);
 
 	return splitted;
 }
@@ -246,7 +247,7 @@ bool		Validator::validateContent(std::string content)
 	this->cursor = 0;
 	this->max_cursor = 0;
 	this->print_level = 0;
-	this->debug = false;
+	this->debug = PARSE_DEBUG;
 	if (!this->start() || this->content[this->cursor])
 	{
 		this->print_syntax_error();
