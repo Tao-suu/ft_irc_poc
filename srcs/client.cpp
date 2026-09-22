@@ -2,6 +2,7 @@
 
 Client::Client(int fd): _fd(fd) {
 	pass_ok = false;
+	pass_done = false;
     nick_ok = false;
     user_ok = false;
 	registered = false;
@@ -9,6 +10,7 @@ Client::Client(int fd): _fd(fd) {
 
 Client::Client( const Client& o ): _fd(o._fd), _IP(o._IP), _nickname(o._nickname), _username(o._username) {
     pass_ok = o.pass_ok;
+	pass_done = o.pass_done;
     nick_ok = o.nick_ok;
     user_ok = o.user_ok;
 	registered = o.registered;

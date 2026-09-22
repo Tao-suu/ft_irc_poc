@@ -13,11 +13,12 @@ class Client
 
 		bool		nick_set;
 		
-        public:
+    public:
         std::string _in_buffer;
         std::string _out_buffer;
 
 		bool		pass_ok;
+		bool		pass_done;
         bool        user_ok;
         bool        nick_ok;
 

@@ -143,7 +143,7 @@ void                Server::handleClientData( int fd )
 
     ssize_t bytes = recv(fd, buffer, 2048, 0);
 
-    std::cout << "client fd(" << fd << ") buffer_in += " << std::string(buffer, bytes) << std::endl;
+    std::cout << "client fd(" << fd << ") buffer_in += " << bytes << " bytes" << std::endl;
 
     if (bytes <= 0) {toRemove_.push_back(fd); return ;}
     if (bytes > 0)  Clients_[fd]._in_buffer.append(buffer, bytes); 
@@ -186,6 +186,13 @@ void				Server::exec(MessageIn &msg, Client& sender)
 
 void				Server::sendWelcome(Client &cl)
 {
+    if (!cl.pass_ok) {
+        std::vector<int> targets; targets.push_back(cl.GetFd());
+        message_stack.push_front(MessageOut(ERR_PASSWDMISMATCH("*") + SEPARATOR, targets));
+        cl.SetNickname(""); cl.SetRealname(""); cl.SetUsername(""); cl.nick_ok = false; cl.pass_done = false; cl.pass_ok = false; cl.user_ok = false;
+        return ;
+    }
+        
     std::cout << "sendWelcome" << std::endl;
 	cl.registered = true;
     std::string     message = RPL_WELCOME(cl.GetNickname()) + "\r\n" +
@@ -261,15 +268,16 @@ void                Server::send_all( void ) {
 
 void				Server::pass(MessageIn &msg, Client& cl) {
     /* ERR MANAGE */
-    if (msg.args.size() < 1 || msg.args[0].size() < 1)
-		throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PASS"));
-	if (cl.registered)
-		throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+    if (msg.args.size() < 1 || msg.args[0].size() < 1) throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PASS"));
+	if (cl.registered) throw Error(cl, ERR_ALREADYREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+    
+    cl.pass_done = true;
 	if (msg.args[0][0] != this->pass_)
-		throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-
+        cl.pass_ok = false;
+		// throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+    else
+        cl.pass_ok = true;
     /* COMMAND CORE */
-    cl.pass_ok = true;
     if (cl.user_ok && cl.nick_ok) sendWelcome(cl); // Login ended
 }
 
@@ -288,7 +296,7 @@ void				Server::nick(MessageIn &msg, Client& cl) {
 	if (cl.registered) {    // Change Nickname case
         broadcastToPeer(cl, MSG_NICK(PREFIX(oldNick, cl.GetUsername(), cl.GetIP()), msg.args[0][0]));
 	} else { cl.nick_ok = true; }
-	if (!cl.registered && cl.pass_ok && cl.user_ok) // Login ended
+	if (!cl.registered && cl.pass_done && cl.user_ok) // Login ended
 		sendWelcome(cl);
 }
 
@@ -303,7 +311,7 @@ void				Server::user(MessageIn &msg, Client& cl) {
     cl.SetRealname(msg.args[3][0]);
     cl.SetUsername(msg.args[0][0]);
     cl.user_ok = true;
-    if (cl.pass_ok && cl.nick_ok) sendWelcome(cl); // Login endeded
+    if (cl.pass_done && cl.nick_ok) sendWelcome(cl); // Login endeded
 }
 
 /* WIP IPW PWI PIW IWP*/
