@@ -6,7 +6,7 @@
 /*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/10/02 14:14:56 by laura            ###   ########.fr       */
+/*   Updated: 2026/10/02 14:21:22 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@
 # define DFL_SETINVITEMODE(client, channel)             std::string(client) + " has set the Invite-Only to the channel " + channel
 # define DFL_REMOVEINVITEMODE(client, channel)          std::string(client) + " has remove the Invite-Only to the channel " + channel
 
-# define DFL_TAKEOPERATORPRIVILEGE(client, target, channel) std::string(client) + " has set operator privilege " + target + " to the channel " + channel
-# define DFL_GIVEOPERATORPRIVILEGE(client, target, channel) std::string(client) + " has remove operator privilege " + target + " to the channel " + channel
+# define DFL_TAKEOPERATORPRIVILEGE(nick, user, host, channel, target) PREFIX(nick, user, host) + " MODE " + channel + " -o " + target
+# define DFL_GIVEOPERATORPRIVILEGE(nick, user, host, channel, target) PREFIX(nick, user, host) + " MODE " + channel + " +o " + target
 
 # define DFL_SETUSERLIMIT(client, limit, channel)       std::string(client) + " has set the user limit at " + limit + " to the channel " + channel
 # define DFL_REMOVEUSERLIMITMODE(client, channel)       std::string(client) + " has remove the USER-LIMIT mMode to the channel " + channel

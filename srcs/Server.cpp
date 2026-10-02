@@ -173,6 +173,7 @@ void                Server::handleClientData( int fd )
 		if (!cv.validateContent(line)) continue ;
 		MessageIn	msg = cv.parseContent(line);
 		exec(msg, Clients_[fd]);
+        if (std::find(toRemove_.begin(), toRemove_.end(), fd) != toRemove_.end()) break;
     }
 }
 void                Server::handleClientWrite( int fd ) {
@@ -350,9 +351,10 @@ void            Server::ping(MessageIn &msg, Client &cl) {
     MessageOut  m;
     m.addTarget(cl.GetFd());
     std::string s; for (size_t i = 0; i < msg.args[0].size(); i++) {
-        
+        s += msg.args[0][i];
+        if (i + 1 < msg.args[0].size()) s += ',';
     }
-    m.setMessage("PONG ft_irc :" + msg.args[0][0] + SEPARATOR);
+    m.setMessage("PONG ft_irc :" + s + SEPARATOR);
     this->push_message(m);
 }
 
@@ -389,9 +391,9 @@ void                Server::join(MessageIn& msg, Client& cl) {
 void            Server::privmsg(MessageIn& msg, Client& cl) {
     if (!cl.registered)
         throw Error(cl, ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
-    if (msg.args.empty())
+    if (msg.args.empty() || msg.args[0].empty())
         throw Error(cl, ERR_NORECIPIENT(cl.GetNickname(), "PRIVMSG"));
-    if (msg.args.size() < 2 || msg.args[1][0].empty())
+    if (msg.args.size() < 2 || msg.args[1].empty() || msg.args[1][0].empty())
         throw Error(cl, ERR_NOTEXTTOSEND(cl.GetNickname()));
 
     for (size_t i = 0; i < msg.args[0].size(); i++) {
@@ -405,7 +407,7 @@ void            Server::privmsg(MessageIn& msg, Client& cl) {
                     mtext += msg.args[1][i];
                     if (i + 1 < msg.args[1].size()) mtext += ',';
                 }
-                MessageOut m; m.setMessage(PREFIX(cl.GetNickname(), cl.GetUsername(), cl.GetIP()) + " PRIVMSG " + chan_it->getName() + " :" + msg.args[1][0] + SEPARATOR); for (std::vector<Client*>::iterator cit = chan_it->getClients().begin(); cit != chan_it->getClients().end(); cit++) {
+                MessageOut m; m.setMessage(PREFIX(cl.GetNickname(), cl.GetUsername(), cl.GetIP()) + " PRIVMSG " + chan_it->getName() + " :" + mtext + SEPARATOR); for (std::vector<Client*>::iterator cit = chan_it->getClients().begin(); cit != chan_it->getClients().end(); cit++) {
                     if ((*(cit))->GetFd() != cl.GetFd()) m.addTarget((*(cit))->GetFd());
                 }
                 push_message(m);

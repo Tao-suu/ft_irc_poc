@@ -106,7 +106,7 @@ void Channel::SetInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        _Mode |= MODE_USER_LIMIT;
+        _Mode |= MODE_INVITE_ONLY;
         MessageListClients(_Clients, DFL_SETINVITEMODE(client->GetNickname(), _Name));
     }
     else
@@ -134,10 +134,10 @@ void Channel::GiveOperatorPrivilege(Client *client, Client *target)
         throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     if (!IsAnOperator(client))
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
-    if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
+    if (!IsClientInChannel(target))
+        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), target->GetNickname(), _Name));
     _Operators.push_back(target);
-   MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetNickname(), client->GetNickname(), _Name));
+   MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetNickname(), client->GetUsername(), client->GetIP(), _Name, target->GetNickname()));
 }
 
 void Channel::TakeOperatorPrivilege(Client *client, Client *target)
@@ -147,9 +147,9 @@ void Channel::TakeOperatorPrivilege(Client *client, Client *target)
     if (!IsAnOperator(client))
         throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
     if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
+        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), target->GetNickname(), _Name));
     _Operators.erase(std::find(_Operators.begin(), _Operators.end(), target));
-    MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetNickname(), client->GetNickname(), _Name));
+    MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetNickname(), client->GetUsername(), client->GetIP(), _Name, target->GetNickname()));
 }
 
 bool Channel::IsAnOperator(Client *client)
