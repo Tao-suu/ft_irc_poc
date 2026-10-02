@@ -41,14 +41,14 @@
 /*****MSG default*******/
 // doc say send messsage but not give it so i create those
 # define DFL_JOIN(client, channel)                      std::string(client) + " is joining the channel " + channel
-# define DFL_KICK(client, target, channel)              std::string(client) + " has kicked " + target + " to the channel " + channel
+# define DFL_KICK(nick, user, host, channel, target)    PREFIX(nick, user, host) + " KICK " + channel + " " + target
 
 # define DFL_INVITE(client, target, channel)            std::string(client) + " has invited " + target + " to the channel " + channel
 # define DFL_SETINVITEMODE(client, channel)             std::string(client) + " has set the Invite-Only to the channel " + channel
 # define DFL_REMOVEINVITEMODE(client, channel)          std::string(client) + " has remove the Invite-Only to the channel " + channel
 
-# define DFL_TAKEOPERATORPRIVILEGE(client, target, channel) std::string(client) + " has set operator privilege " + target + " to the channel " + channel
-# define DFL_GIVEOPERATORPRIVILEGE(client, target, channel) std::string(client) + " has remove operator privilege " + target + " to the channel " + channel
+# define DFL_TAKEOPERATORPRIVILEGE(nick, user, host, channel, target) PREFIX(nick, user, host) + " MODE " + channel + " -o " + target
+# define DFL_GIVEOPERATORPRIVILEGE(nick, user, host, channel, target) PREFIX(nick, user, host) + " MODE " + channel + " +o " + target
 
 # define DFL_SETUSERLIMIT(client, limit, channel)       std::string(client) + " has set the user limit at " + limit + " to the channel " + channel
 # define DFL_REMOVEUSERLIMITMODE(client, channel)       std::string(client) + " has remove the USER-LIMIT mMode to the channel " + channel
