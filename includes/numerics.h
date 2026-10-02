@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   numerics.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/09/10 11:39:21 by lbouchar         ###   ########.fr       */
+/*   Updated: 2026/10/02 14:14:56 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@
 /*****MSG default*******/
 // doc say send messsage but not give it so i create those
 # define DFL_JOIN(client, channel)                      std::string(client) + " is joining the channel " + channel
-# define DFL_KICK(client, target, channel)              std::string(client) + " has kicked " + target + " to the channel " + channel
+# define DFL_KICK(client, target, channel, comment)     std::string(client) + " has kicked " + target + " to the channel " + channel + " " + comment
 
 # define DFL_INVITE(client, target, channel)            std::string(client) + " has invited " + target + " to the channel " + channel
 # define DFL_SETINVITEMODE(client, channel)             std::string(client) + " has set the Invite-Only to the channel " + channel

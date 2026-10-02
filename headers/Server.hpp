@@ -80,8 +80,8 @@ private:
 	void				join(MessageIn& msg, Client& cl);
     void                topic(MessageIn& msg, Client& cl);
     void                list(MessageIn& msg, Client& cl);
-	// void				kick();
-	// void				invite();
+	void				kick(MessageIn& msg, Client& cl);
+	void				invite(MessageIn& msg, Client& cl);
 	// void				mode();
 	void				privmsg(MessageIn& msg, Client& cl);
 	void				ping(MessageIn& msg, Client& cl);

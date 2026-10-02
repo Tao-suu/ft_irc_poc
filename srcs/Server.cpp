@@ -468,6 +468,64 @@ void            Server::list(MessageIn& msg, Client& cl) {
     MessageOut m2; m2.addTarget(cl.GetFd()); m2.setMessage(RPL_LISTEND(cl.GetNickname()) + SEPARATOR); push_message(m2);
 }
 
+void            Server::invite(MessageIn& msg, Client& cl) {
+    if (!cl.registered)
+        throw Error(cl, ERR_NOTREGISTERED(cl.GetNickname()));
+    if (msg.args.size() < 2)
+        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "INITE"));
+
+    std::vector<Channel>::iterator  chan_it = get_channel(msg.args[1][0]);
+    if (chan_it == Channels_.end())
+        throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[1][0]));
+    if (!chan_it->IsClientInChannel(&cl))
+        throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[1][0]));
+    if  (chan_it->IsAnOperator(&cl))
+        throw Error(cl, ERR_CHANOPRIVSNEEDED(cl.GetNickname(), msg.args[0][0]));
+
+    std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[0][0]);
+    if (cit == Clients_.end())
+        throw Error(cl, ERR_NOSUCHNICK(cl.GetNickname(), msg.args[0][0]));
+    if (std::find(chan_it->getClients().begin(), chan_it->getClients().end(), cit) != chan_it->getClients().end())
+        throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), msg.args[0][0], msg.args[1][0]));
+    chan_it->InvitClient(&cl, &cit->second);
+}
+
+void            Server::kick(MessageIn& msg, Client& cl) {
+    if (!cl.registered)
+        throw Error(cl, ERR_NOTREGISTERED(cl.GetNickname()));
+    if (msg.args.size() < 2)
+        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "KICK"));
+
+    std::vector<Channel>::iterator  chan_it = get_channel(msg.args[0][0]);
+    if (chan_it == Channels_.end())
+        throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][0]));
+    if  (chan_it->IsAnOperator(&cl))
+        throw Error(cl, ERR_CHANOPRIVSNEEDED(cl.GetNickname(), msg.args[0][0]));
+    std::string comment = "";
+    if (!msg.args[2].empty() && !msg.args[2][0].empty()){ 
+        comment = msg.args[2][0];}
+
+    for (size_t i = 0; i < msg.args[1].size(); i++) {
+    try {
+            std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[1][i]);
+            if (cit == Clients_.end())
+                throw Error(cl, ERR_NOSUCHNICK(cl.GetNickname(), msg.args[1][i]));
+            if (std::find(chan_it->getClients().begin(), chan_it->getClients().end(), cit) != chan_it->getClients().end())
+                throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), msg.args[0][0], msg.args[1][i]));
+            if (!chan_it->IsClientInChannel(&cl))
+            throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[0][0]));
+            chan_it->KickClient(&cl, &cit->second, comment);
+        }
+    catch(const Error& e) 
+        {
+            MessageOut  m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
+            this->push_message(m);
+        }
+    }
+}
+
+
+
 /* WIP IPW PWj PIW IWP*/
 
 // void                Server::ping(MessageIn& msg, Client& cl) {

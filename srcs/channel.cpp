@@ -70,17 +70,11 @@ void Channel::ExitClient(Client *client)
         _Operators.erase(std::find(_Operators.begin(), _Operators.end(), client));
 }
 
-void Channel::KickClient(Client *client, Client *target)
+void Channel::KickClient(Client *client, Client *target,  std::string comment)
 {
-    if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
-    if (!IsClientInChannel(target))
-        throw Error(*client, ERR_USERNOTINCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
-    if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     ExitClient(target);
-    MessageClient(target, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name));
-    MessageClient(client, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name));
+    MessageClient(target, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name, comment));
+    MessageClient(client, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name, comment));
 }
 
 bool Channel::IsClientInChannel(Client *client) const
@@ -96,12 +90,6 @@ bool Channel::IsClientInChannel(Client *client) const
 
 void Channel::InvitClient(Client *client, Client *target)
 {
-    if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
-    if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
-    if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
     _Invitations.push_back(target);
     MessageClient(client, RPL_INVITING(client->GetNickname(), client->GetNickname(), _Name));
     MessageClient(target, DFL_INVITE(client->GetNickname(), target->GetNickname(), _Name));
