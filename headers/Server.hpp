@@ -22,6 +22,7 @@
 #include "numerics.h"
 #include "channel.hpp"
 #include "MessageOut.hpp"
+#include "utils.h"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
@@ -77,10 +78,12 @@ private:
 	void				user(MessageIn &msg, Client& cl);
 	
 	void				join(MessageIn& msg, Client& cl);
+    void                topic(MessageIn& msg, Client& cl);
+    void                list(MessageIn& msg, Client& cl);
 	// void				kick();
 	// void				invite();
 	// void				mode();
-	// void				privmsg();
+	void				privmsg(MessageIn& msg, Client& cl);
 	void				ping(MessageIn& msg, Client& cl);
 
 	bool 				            is_nickname_exist(std::string nick);
@@ -89,6 +92,7 @@ private:
 
     bool                            is_channel_exist(std::string name);
     std::vector<Channel>::iterator  get_channel(std::string name);
+    std::map<int, Client>::iterator get_client_by_nick(std::string nick);
 
 public:
     class ServerException: public std::exception

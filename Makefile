@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 CC 					= c++
-CFLAGS				= -Wall -Wextra -Werror -std=c++98
+CFLAGS				= -Wall -Wextra -Werror -std=c++98 -g3
 
 NAME				= ircserv
 
@@ -35,7 +35,8 @@ SRCS_RAW			= main.cpp \
 					  Server.cpp \
 					  MessageIn.cpp \
 					  Error.cpp \
-					  MessageOut.cpp
+					  MessageOut.cpp \
+					  utils.cpp
 SRCS				= $(addprefix $(SRCS_FOLDER), $(SRCS_RAW))
 OBJS_RAW			= $(SRCS_RAW:.cpp=.o)
 OBJS				= $(addprefix $(OBJS_FOLDER), $(OBJS_RAW))

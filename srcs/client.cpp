@@ -1,4 +1,6 @@
 #include "client.hpp"
+#include "Error.hpp"
+#include "numerics.h"
 
 Client::Client(int fd): _fd(fd) {
 	pass_ok = false;
@@ -35,13 +37,19 @@ Client& Client::operator=( const Client& o )
     return *this;
 }
 
-int             Client::GetFd(){return _fd;}
-std::string     Client::GetIP(){return _IP;}
-std::string     Client::GetNickname(){return _nickname;}
-std::string     Client::GetUsername(){return _username;}
+int             Client::GetFd() const {return _fd;}
+std::string     Client::GetIP() const {return _IP;}
+std::string     Client::GetNickname() const {return _nickname;}
+std::string     Client::GetUsername() const {return _username;}
 
 void            Client::SetFd(int fd){_fd = fd;}
 void            Client::SetIpAdd(std::string IP){_IP = IP;}
-void            Client::SetNickname(std::string nickname){_nickname = nickname;}
+void            Client::SetNickname(std::string nickname){
+    if (nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':' || ::isdigit(nickname[0])) throw Error(*this, ERR_ERRONEUSNICKNAME("*", nickname));
+    for (size_t i = 1; i < nickname.size(); i++) {
+        if (nickname[i] == ',' || nickname[i] == '*' || nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') throw Error(*this, ERR_ERRONEUSNICKNAME("*", nickname));
+    }
+    _nickname = nickname;
+}
 void            Client::SetUsername(std::string username){_username = username;}
 void            Client::SetRealname(std::string realname){_realname = realname;}

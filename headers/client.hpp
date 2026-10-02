@@ -29,11 +29,11 @@ class Client
         ~Client();
         Client &operator=(const Client &o);
         
-		int          GetFd();
-        std::string  GetIP();
-        std::string  GetNickname();
-        std::string  GetUsername();
-        std::string  GetRealname();
+		int          GetFd() const;
+        std::string  GetIP() const;
+        std::string  GetNickname() const;
+        std::string  GetUsername() const;
+        std::string  GetRealname() const;
 
 		// void		set_pass_ok(bool val);
 

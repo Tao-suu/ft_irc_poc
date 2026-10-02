@@ -6,16 +6,17 @@
 # include <iostream>
 # include <vector>
 # include <algorithm>
+# include <sstream>
 # include <string>
 # include "Server.hpp"
 # include "numerics.h"
 # include "Error.hpp"
 # include <ctime>
 
-# define  MODE_INVITE_ONLY  (0 << 0)
-# define  MODE_TOPIC        (1 << 0)
-# define  MODE_KEY          (1 << 1)
-# define  MODE_USER_LIMIT   (1 << 2)
+# define  MODE_INVITE_ONLY  (1 << 0)
+# define  MODE_TOPIC        (1 << 1)
+# define  MODE_KEY          (1 << 2)
+# define  MODE_USER_LIMIT   (1 << 3)
 
 class Server;
 
@@ -31,12 +32,12 @@ class Channel
         std::string             _Topic;
         char                    _Mode;
         Server*                 _Server;
-        Client*                 _AutorTopic;
+        Client                  _AutorTopic;
         std::string             _TopicTime;
 
     public :
         Channel();
-        Channel(std::string name, Server* server);
+        Channel(std::string name, Server* server, Client* creator);
         Channel(const Channel &copy);
         Channel &operator= (const Channel &src);
         ~Channel();
@@ -62,15 +63,26 @@ class Channel
         void SetKey(Client *client, std::string key);
         void RemoveKey(Client *client);
        
+        void SetTopicMode(Client *client);
+        void RemoveTopicMode(Client *client);
         void SetTopic(Client *client, std::string topic);
         void RemoveTopic(Client *client);
+
         
         void MessageClient(Client *client, std::string message);
         void MessageListClients(std::vector<Client*> clients, std::string message);
-
+        
         /************** GETTER **************/
-        std::vector<Client*>    getClients() const;
-        std::string             getName() const;
+        std::vector<Client*>&    getClients();
+        std::string&             getName();
+        std::string&             getTopic();
+        std::string              getAuthorTopic();
+        std::string&             getTopicTime();
+
+        /************** UTILS ***************/
+        std::string get_namereply( void );
+
+        static bool is_valid_name(const std::string& name);
 };        
 
 

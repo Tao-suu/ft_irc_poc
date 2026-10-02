@@ -231,7 +231,8 @@ MessageIn		Validator::parseContent(std::string content)
 	for (size_t i = 0; i < splitted.size(); i++)
 	{
 		std::vector<std::string>	subSplitted = split(splitted[i], ',');
-		msg.args.push_back(subSplitted);
+		if (subSplitted.empty()) msg.args.push_back(std::vector<std::string>(1, ""));
+		else msg.args.push_back(subSplitted);
 	}
 	if (colon != std::string::npos)
 	{

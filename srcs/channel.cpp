@@ -6,7 +6,7 @@
 
 Channel::Channel(): _Name(""), _UserLimit(0), _Mode(0), _Server(0), _AutorTopic(0) {}
 
-Channel::Channel(std::string name, Server *server) : _Name(name), _UserLimit(0), _Mode(0), _Server(server), _AutorTopic(0) {}
+Channel::Channel(std::string name, Server *server, Client* creator): _Name(name), _UserLimit(0), _Mode(0), _Server(server), _AutorTopic(0) { AddClient(creator); _Operators.push_back(creator); }
 
 Channel::Channel(const Channel &copy) {*this = copy;}
 
@@ -38,17 +38,21 @@ Channel::~Channel(){}
 void Channel::JoinChannel(Client *client, std::string key)
 {
     if (_Mode & MODE_KEY && _Key != key)
-        throw Error(*client, ERR_BADCHANNELKEY(client->GetUsername(), _Name));
+        throw Error(*client, ERR_BADCHANNELKEY(client->GetNickname(), _Name));
     if (_Mode & MODE_USER_LIMIT && _Clients.size() >= _UserLimit)
-        throw Error(*client, ERR_CHANNELISFULL(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANNELISFULL(client->GetNickname(), _Name));
     if(_Mode & MODE_INVITE_ONLY && !IsClientInvited(client))
-        throw Error(*client, ERR_INVITEONLYCHAN(client->GetUsername(), _Name));
+        throw Error(*client, ERR_INVITEONLYCHAN(client->GetNickname(), _Name));
     AddClient(client);
-    MessageListClients(_Clients, DFL_JOIN(client->GetUsername(), _Name));
-    if (_Mode & MODE_TOPIC)
+    if (_Clients.size() == 1) _Operators.push_back(_Clients.back());
+    // MessageListClients(_Clients, DFL_JOIN(client->GetNickname(), _Name));
+    MessageOut m0; m0.setMessage(PREFIX(client->GetNickname(), client->GetUsername(), client->GetIP()) + " JOIN " + _Name + SEPARATOR);
+    for (size_t j = 0; j < _Clients.size(); j++) m0.addTarget(_Clients[j]->GetFd());
+    _Server->push_message(m0);
+    if (!_Topic.empty())
     {
-        MessageClient(client, RPL_TOPIC(client->GetUsername(), _Name, _Topic));
-        MessageClient(client, RPL_TOPICWHOTIME(client->GetUsername(), _Name, _AutorTopic->GetUsername(), _TopicTime));
+        MessageClient(client, RPL_TOPIC(client->GetNickname(), _Name, _Topic));
+        MessageClient(client, RPL_TOPICWHOTIME(client->GetNickname(), _Name, _AutorTopic.GetNickname(), _TopicTime));
     }
 }
 
@@ -69,14 +73,14 @@ void Channel::ExitClient(Client *client)
 void Channel::KickClient(Client *client, Client *target)
 {
     if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
     if (!IsClientInChannel(target))
-        throw Error(*client, ERR_USERNOTINCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+        throw Error(*client, ERR_USERNOTINCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
     if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     ExitClient(target);
-    MessageClient(target, DFL_KICK(client->GetUsername(), target->GetUsername(), _Name));
-    MessageClient(client, DFL_KICK(client->GetUsername(), target->GetUsername(), _Name));
+    MessageClient(target, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name));
+    MessageClient(client, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name));
 }
 
 bool Channel::IsClientInChannel(Client *client) const
@@ -93,14 +97,14 @@ bool Channel::IsClientInChannel(Client *client) const
 void Channel::InvitClient(Client *client, Client *target)
 {
     if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
     if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
     _Invitations.push_back(target);
-    MessageClient(client, RPL_INVITING(client->GetUsername(), client->GetNickname(), _Name));
-    MessageClient(target, DFL_INVITE(client->GetUsername(), target->GetUsername(), _Name));
+    MessageClient(client, RPL_INVITING(client->GetNickname(), client->GetNickname(), _Name));
+    MessageClient(target, DFL_INVITE(client->GetNickname(), target->GetNickname(), _Name));
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -114,22 +118,22 @@ void Channel::SetInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-         _Mode = _Mode & MODE_USER_LIMIT;
-        MessageListClients(_Clients, DFL_SETINVITEMODE(client->GetUsername(), _Name));
+        _Mode |= MODE_USER_LIMIT;
+        MessageListClients(_Clients, DFL_SETINVITEMODE(client->GetNickname(), _Name));
     }
     else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 void Channel::RemoveInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
     {
-        _Mode = _Mode ^ MODE_INVITE_ONLY;
-        MessageListClients(_Clients, DFL_REMOVEINVITEMODE(client->GetUsername(), _Name));
+        _Mode &= ~MODE_INVITE_ONLY;
+        MessageListClients(_Clients, DFL_REMOVEINVITEMODE(client->GetNickname(), _Name));
     }
     else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 /*************************/
@@ -139,25 +143,25 @@ void Channel::RemoveInviteOnlyMode(Client *client)
 void Channel::GiveOperatorPrivilege(Client *client, Client *target)
 {
     if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
     if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
     _Operators.push_back(target);
-   MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
+   MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetNickname(), client->GetNickname(), _Name));
 }
 
 void Channel::TakeOperatorPrivilege(Client *client, Client *target)
 {
     if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetUsername(), _Name));
+        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
     if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
     if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetUsername(), client->GetNickname(), _Name));
+        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), client->GetNickname(), _Name));
     _Operators.erase(std::find(_Operators.begin(), _Operators.end(), target));
-    MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetUsername(), client->GetUsername(), _Name));
+    MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetNickname(), client->GetNickname(), _Name));
 }
 
 bool Channel::IsAnOperator(Client *client)
@@ -177,24 +181,24 @@ void Channel::SetUserLimit(Client *client, unsigned int limit)
     ss << limit;
     if (IsAnOperator(client))
     {
-        _Mode = _Mode & MODE_USER_LIMIT;
+        _Mode |= MODE_USER_LIMIT;
         _UserLimit = limit;
-        MessageListClients(_Clients, DFL_SETUSERLIMIT(client->GetUsername(), ss.str(), _Name));
+        MessageListClients(_Clients, DFL_SETUSERLIMIT(client->GetNickname(), ss.str(), _Name));
     }
     else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 void Channel::RemoveUserLimit(Client *client)
 {
     if (IsAnOperator(client))
     {
-        _Mode = _Mode ^ MODE_USER_LIMIT;
+        _Mode &= ~MODE_USER_LIMIT;
         _UserLimit = 0;
-        MessageListClients(_Clients, DFL_REMOVEUSERLIMITMODE(client->GetUsername(), _Name));
+        MessageListClients(_Clients, DFL_REMOVEUSERLIMITMODE(client->GetNickname(), _Name));
     }
     else
-       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 /*********************/
@@ -206,23 +210,23 @@ void Channel::SetKey(Client *client, std::string key)
    if (IsAnOperator(client))
     {
         _Key = key;
-        _Mode = _Mode & MODE_KEY;
-        MessageListClients(_Clients, DFL_SETKEY(client->GetUsername(), _Name));
+        _Mode |= MODE_KEY;
+        MessageListClients(_Clients, DFL_SETKEY(client->GetNickname(), _Name));
     }
     else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 void Channel::RemoveKey(Client *client)
 {
     if (IsAnOperator(client))
     {
-        _Mode = _Mode ^ MODE_KEY;
+        _Mode &= ~MODE_KEY;
         _Key = "";
-        MessageListClients(_Clients, DFL_REMOVEKEYMODE(client->GetUsername(), _Name));
+        MessageListClients(_Clients, DFL_REMOVEKEYMODE(client->GetNickname(), _Name));
     }
     else
-       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
 }
 
 
@@ -230,31 +234,35 @@ void Channel::RemoveKey(Client *client)
 /*      TOPIC MODE    */
 /**********************/
 
+void Channel::SetTopicMode(Client *client) {
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    
+    _Mode |= MODE_TOPIC;
+}
+
+void Channel::RemoveTopicMode(Client *client) {
+    if (!IsAnOperator(client))
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+
+    _Mode &= ~MODE_TOPIC;
+}
+
 void Channel::SetTopic(Client *client, std::string topic)
 {
-   if (IsAnOperator(client))
-    {
-        _Mode = _Mode & MODE_TOPIC;
-        _Topic = topic;
-        _AutorTopic = client;
-        time_t timestamp;
-        _TopicTime = time(&timestamp);
-        MessageListClients(_Clients, DFL_SETTOPIC(client->GetUsername(), topic, _Name));
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));
+    if (!IsAnOperator(client) && _Mode & MODE_TOPIC)
+        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    _Topic = topic;
+    _AutorTopic = *client;
+    time_t timestamp;
+    std::ostringstream oss; oss << time(&timestamp);
+    _TopicTime = oss.str();
+    MessageListClients(_Clients, DFL_SETTOPIC(client->GetNickname(), client->GetUsername(), client->GetIP(), topic, _Name));
 }
 
 void Channel::RemoveTopic(Client *client)
 {
-    if (IsAnOperator(client))
-    {
-        _Mode = _Mode ^ MODE_TOPIC;
-        _Topic = "";
-        MessageListClients(_Clients, DFL_REMOVETOPICMODE(client->GetUsername(), _Name));
-    }
-    else
-       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetUsername(), _Name));        
+    (void)client;
 }
 
 /*************************/
@@ -284,5 +292,32 @@ void Channel::MessageListClients(std::vector<Client*> clients, std::string messa
 /*        GETTER         */
 /*************************/
 
-std::string             Channel::getName() const { return this->_Name; }
-std::vector<Client*>    Channel::getClients() const { return this->_Clients; }
+std::string&             Channel::getName() { return this->_Name; }
+std::vector<Client*>&    Channel::getClients() { return this->_Clients; }
+std::string&             Channel::getTopic() { return this->_Topic; }
+std::string              Channel::getAuthorTopic() { return this->_AutorTopic.GetNickname(); }
+std::string&             Channel::getTopicTime() { return this->_TopicTime; }
+
+/*************************/
+/*         UTILS         */
+/*************************/
+
+std::string     Channel::get_namereply( void ) {
+    std::stringstream   ss;
+    
+    for (size_t i = 0; i < _Clients.size(); i++) {
+        ss << (IsAnOperator(_Clients[i]) ? "@" : "");
+        ss << _Clients[i]->GetNickname();
+        if (i + 1 < _Clients.size()) ss << " ";
+    }
+    return ss.str();
+}
+
+
+bool            Channel::is_valid_name(const std::string& name) {
+    if (name[0] != '#' || name.size() <= 1) return false;
+    for (size_t i = 0; i < name.size(); i++) {
+        if (::isspace(name[i]) || name[i] == ',' || name[i] == '\x07') return false;
+    }
+    return true;
+}
