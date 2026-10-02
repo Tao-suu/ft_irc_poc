@@ -199,6 +199,7 @@ void				Server::exec(MessageIn &msg, Client& sender)
         else if (cmdName == "PRIVMSG") privmsg(msg, sender);
         else if (cmdName == "TOPIC") topic(msg, sender);
         else if (cmdName == "LIST") list(msg, sender);
+        else if (cmdName == "PART") list(msg, sender);
 		else throw Error(sender, ERR_UNKNOWCOMMAND((sender.GetNickname().empty() ? "*" : sender.GetNickname()), msg.cmdName));
 	} catch (Error &e) {
         e._msg += SEPARATOR;
@@ -447,7 +448,6 @@ void            Server::topic(MessageIn& msg, Client& cl) {
         push_message(m);
         return ;
     }
-
     chan_it->SetTopic(&cl, msg.args[1][0]);
 }
 
@@ -526,7 +526,30 @@ void            Server::kick(MessageIn& msg, Client& cl) {
     }
 }
 
-
+void            Server::part(MessageIn& msg, Client& cl)
+{
+     if (!cl.registered)
+        throw Error(cl, ERR_NOTREGISTERED(cl.GetNickname()));
+    if (msg.args.size() < 1)
+        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "KICK"));
+    std::string reason = "";
+    if (!msg.args[1].empty() && !msg.args[1][0].empty()){ 
+        reason = msg.args[1][0];}
+    for (size_t i = 0; i < msg.args[1].size(); i++) {
+    try {
+            std::vector<Channel>::iterator  chan_it = get_channel(msg.args[i][0]);
+            if (chan_it == Channels_.end())
+                throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[i][0]));
+            if (!chan_it->IsClientInChannel(&cl))
+                throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[i][0]));
+            chan_it->PartClient(&cl, reason);}
+    catch(const Error& e) 
+        {
+            MessageOut  m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
+            this->push_message(m);
+        }
+    }
+}
 
 /* WIP IPW PWj PIW IWP*/
 

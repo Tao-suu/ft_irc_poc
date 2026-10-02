@@ -6,7 +6,7 @@
 /*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/10/02 14:21:22 by laura            ###   ########.fr       */
+/*   Updated: 2026/10/02 18:17:23 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@
 // doc say send messsage but not give it so i create those
 # define DFL_JOIN(client, channel)                      std::string(client) + " is joining the channel " + channel
 # define DFL_KICK(client, target, channel, comment)     std::string(client) + " has kicked " + target + " to the channel " + channel + " " + comment
+# define DFL_PART(client, channel, reason)              std::string(client) + " leave channel " + channel + " " + reason
 
 # define DFL_INVITE(client, target, channel)            std::string(client) + " has invited " + target + " to the channel " + channel
 # define DFL_SETINVITEMODE(client, channel)             std::string(client) + " has set the Invite-Only to the channel " + channel

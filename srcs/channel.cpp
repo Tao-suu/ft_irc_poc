@@ -77,6 +77,12 @@ void Channel::KickClient(Client *client, Client *target,  std::string comment)
     MessageClient(client, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name, comment));
 }
 
+void Channel::PartClient(Client *client, std::string reason)
+{
+    MessageClient(client, PREFIX(client->GetNickname(),client->GetUsername(), client->GetIP()) + " PART " + _Name + ' ' + reason + SEPARATOR);
+    ExitClient(client);
+}
+
 bool Channel::IsClientInChannel(Client *client) const
 {
     if ((std::find(_Clients.begin(), _Clients.end(), client)) == _Clients.end())

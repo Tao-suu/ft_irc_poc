@@ -10,7 +10,7 @@ together to form a network.
 
 The aim of ft_irc is to develop an IRC server in standard C++98, capable of handling multiple clients simultaneously.
 
-## REQUIEREMENT
+# REQUIEREMENT
 
 As client, you should be able to :
 - authenticate, 
@@ -19,23 +19,41 @@ As client, you should be able to :
 - join a channel,
 - send and receive private messages 
 
-On channel, you should have operators, regular users and commands that are specific to channel operators:
-- Kick
-- Invite
-- Topic
-- Mode (i, t, k, o, l)
+On channel, you should have operators, regular users and commands that are specific to channel Mode
   - i = invite only
   - t = topic
   - k = key (password)
   - o = operator
   - l = user limit
 
-# INSTRUCTION
+Bonus :
+- Handle file transfer 
+- A bot : conversation with ChatGPT and Weather
+
+# INSTRUCTIONS
+
+port : 12345 (but you can choose between 1024 and 65535)
+password : you can choose
 
 ./ircserv <port> <password>
 
-• port: The port number on which your IRC server will be listening for incoming IRC connections.
-• password: The connection password. It will be needed by any IRC client that tries to connect to your server.
+in another terminal
+<nc ip <port> >
+or 
+irssi
+/connect <ip> <port> <password>
+
+Command :
+PASS <password>
+NICK <nickname>
+USER <username> 0 * <realname>
+JOIN <channel>{,<channel>} [<key>{,<key>}]
+PRIVMSG <target>{,<target>} <text to be sent>
+TOPIC <channel> [<topic>]
+LIST [<channel>{,<channel>}] [<elistcond>{,<elistcond>}]
+INVITE <nickname> <channel>
+KICK <channel> <user> *( "," <user> ) [<comment>]
+MODE <target> [<modestring> [<mode arguments>...]]
 
 # RESSOURCES
 

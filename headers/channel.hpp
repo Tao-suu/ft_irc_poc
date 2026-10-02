@@ -46,6 +46,7 @@ class Channel
         void AddClient(Client *client);
         void ExitClient(Client *client);
         void KickClient(Client *operators, Client *client, std::string comment);
+        void PartClient(Client *operators, std::string reason);
         bool IsClientInChannel(Client *client) const;
 
         void InvitClient(Client *client, Client *target);
