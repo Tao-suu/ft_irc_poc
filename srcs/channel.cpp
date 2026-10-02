@@ -271,6 +271,9 @@ std::vector<Client*>::iterator  Channel::getClientByNick(const std::string& name
     }
     return _Clients.end();
 }
+int                             Channel::getMode() { return _Mode; }
+std::string                     Channel::getUserlimit() { std::ostringstream ss; ss << _UserLimit; std::string tmp = ss.str(); return tmp; }
+std::string&                    Channel::getKey() { return _Key; }
 
 
 /*************************/

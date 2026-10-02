@@ -479,17 +479,17 @@ void            Server::invite(MessageIn& msg, Client& cl) {
 
     std::vector<Channel>::iterator  chan_it = get_channel(msg.args[1][0]);
     if (chan_it == Channels_.end())
-        throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[1][0]));
+        throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][0]));
     if (!chan_it->IsClientInChannel(&cl))
         throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[1][0]));
-    if  (chan_it->IsAnOperator(&cl))
+    if (!chan_it->IsAnOperator(&cl))
         throw Error(cl, ERR_CHANOPRIVSNEEDED(cl.GetNickname(), msg.args[0][0]));
 
     std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[0][0]);
     if (cit == Clients_.end())
         throw Error(cl, ERR_NOSUCHNICK(cl.GetNickname(), msg.args[0][0]));
-    if (std::find(chan_it->getClients().begin(), chan_it->getClients().end(), cit) != chan_it->getClients().end())
-        throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), msg.args[0][0], msg.args[1][0]));
+    if (chan_it->IsClientInChannel(&cit->second))
+        throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), chan_it->getName(), msg.args[1][0]));
     chan_it->InvitClient(&cl, &cit->second);
 }
 
@@ -504,8 +504,18 @@ void            Server::mode(MessageIn& msg, Client& cl) {
     if (chan_it == Channels_.end())
         throw Error(cl.GetFd(), ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][0]));
     
-    if (msg.args.size() == 1 || !(msg.args[1].empty() || msg.args[1][0].empty())) {
-        // 
+    if (msg.args.size() == 1 || (msg.args[1].empty() || msg.args[1][0].empty())) {
+        std::string response = "+"; int mode = chan_it->getMode();
+        
+        if (mode & MODE_INVITE_ONLY) response += 'i';
+        if (mode & MODE_TOPIC) response += 't';
+        if (mode & MODE_KEY) response += 'k';
+        if (mode & MODE_USER_LIMIT) response += 'l';
+
+        if (mode & MODE_KEY) response += " " + chan_it->getKey();
+        if (mode & MODE_USER_LIMIT) response += " " + chan_it->getUserlimit();
+        MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(std::string("324 ") + cl.GetNickname() + " " + chan_it->getName() + " " + response + SEPARATOR);
+        push_message(m);
     } else {
         if (!chan_it->IsAnOperator(&cl)) throw Error(cl.GetFd(), ERR_CHANOPRIVSNEEDED(cl.GetNickname(), chan_it->getName()));
         
@@ -544,8 +554,8 @@ void            Server::mode(MessageIn& msg, Client& cl) {
                     changed = true;
                 } else {
                     if (p < msg.args.size()) p++;
+                    changed = chan_it->bitMode(MODE_KEY, false);
                     chan_it->RemoveKey();
-                    changed = true;
                 }
                 break ;
             }
@@ -624,8 +634,6 @@ void            Server::kick(MessageIn& msg, Client& cl) {
             std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[1][i]);
             if (cit == Clients_.end())
                 throw Error(cl, ERR_NOSUCHNICK(cl.GetNickname(), msg.args[1][i]));
-            if (std::find(chan_it->getClients().begin(), chan_it->getClients().end(), cit) != chan_it->getClients().end())
-                throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), msg.args[0][0], msg.args[1][i]));
             if (!chan_it->IsClientInChannel(&cl))
             throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[0][0]));
             chan_it->KickClient(&cl, &cit->second, comment);

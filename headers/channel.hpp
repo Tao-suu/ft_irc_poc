@@ -81,6 +81,9 @@ class Channel
         std::string                     getAuthorTopic();
         std::string&                    getTopicTime();
         std::vector<Client*>::iterator  getClientByNick(const std::string& name);
+        int                             getMode();
+        std::string&                    getKey();
+        std::string                     getUserlimit();
 
         /************** UTILS ***************/
         std::string get_namereply( void );

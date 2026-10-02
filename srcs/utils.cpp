@@ -12,8 +12,9 @@ std::string     to_upper_string(const std::string& str) {
 }
 
 bool            is_unsigned_int(const std::string& str) {
+    if (str.size() > 10 || str.empty()) return false;
+    if (str.size() < 10) return true;
     for (size_t i = 0; i < str.size(); i++) if (!::isdigit(str[i])) return false;
-    if (str.size() > 10) return false;
-    if (::strcmp(str.c_str(), "2147483647") > 0) return false;
+    if (::strcmp(str.c_str(), "2147483647") > 0 || str == "0") return false;
     return true;
 }
