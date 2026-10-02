@@ -169,58 +169,32 @@ bool Channel::IsAnOperator(Client *client)
 /*      USER MODE        */
 /*************************/
 
-void Channel::SetUserLimit(Client *client, unsigned int limit)
+void Channel::SetUserLimit(unsigned int limit)
 {
-    std::ostringstream ss;
-    ss << limit;
-    if (IsAnOperator(client))
-    {
-        _Mode |= MODE_USER_LIMIT;
-        _UserLimit = limit;
-        MessageListClients(_Clients, DFL_SETUSERLIMIT(client->GetNickname(), ss.str(), _Name));
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    _Mode |= MODE_USER_LIMIT;
+    _UserLimit = limit;
 }
 
-void Channel::RemoveUserLimit(Client *client)
+void Channel::RemoveUserLimit()
 {
-    if (IsAnOperator(client))
-    {
-        _Mode &= ~MODE_USER_LIMIT;
-        _UserLimit = 0;
-        MessageListClients(_Clients, DFL_REMOVEUSERLIMITMODE(client->GetNickname(), _Name));
-    }
-    else
-       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    _Mode &= ~MODE_USER_LIMIT;
+    _UserLimit = 0;
 }
 
 /*********************/
 /*      KEY MODE    */
 /********************/
 
-void Channel::SetKey(Client *client, std::string key)
+void Channel::SetKey(std::string key)
 {
-   if (IsAnOperator(client))
-    {
-        _Key = key;
-        _Mode |= MODE_KEY;
-        MessageListClients(_Clients, DFL_SETKEY(client->GetNickname(), _Name));
-    }
-    else
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    _Key = key;
+    _Mode |= MODE_KEY;
 }
 
-void Channel::RemoveKey(Client *client)
+void Channel::RemoveKey()
 {
-    if (IsAnOperator(client))
-    {
-        _Mode &= ~MODE_KEY;
-        _Key = "";
-        MessageListClients(_Clients, DFL_REMOVEKEYMODE(client->GetNickname(), _Name));
-    }
-    else
-       throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
+    _Mode &= ~MODE_KEY;
+    _Key = "";
 }
 
 
@@ -286,11 +260,18 @@ void Channel::MessageListClients(std::vector<Client*> clients, std::string messa
 /*        GETTER         */
 /*************************/
 
-std::string&             Channel::getName() { return this->_Name; }
-std::vector<Client*>&    Channel::getClients() { return this->_Clients; }
-std::string&             Channel::getTopic() { return this->_Topic; }
-std::string              Channel::getAuthorTopic() { return this->_AutorTopic.GetNickname(); }
-std::string&             Channel::getTopicTime() { return this->_TopicTime; }
+std::string&                    Channel::getName() { return this->_Name; }
+std::vector<Client*>&           Channel::getClients() { return this->_Clients; }
+std::string&                    Channel::getTopic() { return this->_Topic; }
+std::string                     Channel::getAuthorTopic() { return this->_AutorTopic.GetNickname(); }
+std::string&                    Channel::getTopicTime() { return this->_TopicTime; }
+std::vector<Client*>::iterator  Channel::getClientByNick(const std::string& name) {
+    for (std::vector<Client*>::iterator it = _Clients.begin(); it != _Clients.end(); it++) {
+        if (to_upper_string((*it)->GetNickname()) == to_upper_string(name)) return it;
+    }
+    return _Clients.end();
+}
+
 
 /*************************/
 /*         UTILS         */
@@ -313,5 +294,14 @@ bool            Channel::is_valid_name(const std::string& name) {
     for (size_t i = 0; i < name.size(); i++) {
         if (::isspace(name[i]) || name[i] == ',' || name[i] == '\x07') return false;
     }
+    return true;
+}
+
+bool            Channel::bitMode(int bit, bool state) {
+    bool bitstate = (_Mode & bit) != 0;
+    if (state == bitstate) return false;
+
+    if (state) _Mode |= bit;
+    else _Mode &= ~bit;
     return true;
 }

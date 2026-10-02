@@ -83,7 +83,7 @@ private:
     void                part(MessageIn& msg, Client& cl);
 	void				kick(MessageIn& msg, Client& cl);
 	void				invite(MessageIn& msg, Client& cl);
-	// void				mode();
+	void				mode(MessageIn& msg, Client& cl);
 	void				privmsg(MessageIn& msg, Client& cl);
 	void				ping(MessageIn& msg, Client& cl);
 

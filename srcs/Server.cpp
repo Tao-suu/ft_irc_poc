@@ -200,6 +200,7 @@ void				Server::exec(MessageIn &msg, Client& sender)
         else if (cmdName == "TOPIC") topic(msg, sender);
         else if (cmdName == "LIST") list(msg, sender);
         else if (cmdName == "PART") list(msg, sender);
+        else if (cmdName == "MODE") mode(msg, sender);
 		else throw Error(sender, ERR_UNKNOWCOMMAND((sender.GetNickname().empty() ? "*" : sender.GetNickname()), msg.cmdName));
 	} catch (Error &e) {
         e._msg += SEPARATOR;
@@ -490,6 +491,117 @@ void            Server::invite(MessageIn& msg, Client& cl) {
     if (std::find(chan_it->getClients().begin(), chan_it->getClients().end(), cit) != chan_it->getClients().end())
         throw Error(cl, ERR_USERONCHANNEL(cl.GetNickname(), msg.args[0][0], msg.args[1][0]));
     chan_it->InvitClient(&cl, &cit->second);
+}
+
+void            Server::mode(MessageIn& msg, Client& cl) {
+    if (!cl.registered)
+        throw Error(cl.GetFd(), ERR_NOTREGISTERED((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
+    if (msg.args.empty() || msg.args.size() < 1 || msg.args[0].empty() || msg.args[0][0].empty())
+        throw Error(cl.GetFd(), ERR_NEEDMOREPARAMS(cl.GetNickname(), "MODE"));
+    
+    if (msg.args[0][0][0] != '#') return ;
+    std::vector<Channel>::iterator chan_it = get_channel(msg.args[0][0]);
+    if (chan_it == Channels_.end())
+        throw Error(cl.GetFd(), ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][0]));
+    
+    if (msg.args.size() == 1 || !(msg.args[1].empty() || msg.args[1][0].empty())) {
+        // 
+    } else {
+        if (!chan_it->IsAnOperator(&cl)) throw Error(cl.GetFd(), ERR_CHANOPRIVSNEEDED(cl.GetNickname(), chan_it->getName()));
+        
+        bool sign = true; 
+        std::string smode = msg.args[1][0]; 
+        size_t p = 2;
+
+        std::string applied;
+        std::string appliedParams;
+        char lastSign = 0;
+
+        for (size_t i = 0; i < smode.size(); i++) {
+            char c = smode[i];
+            bool changed = false;
+            std::string param = "";
+
+            switch (c)
+            {
+            case '+': sign = true; break;
+            case '-': sign = false; break;
+
+            case 't':
+                changed = chan_it->bitMode(MODE_TOPIC, sign);
+                break ;
+            case 'i':
+                changed = chan_it->bitMode(MODE_INVITE_ONLY, sign);
+                break;
+            
+            case 'k':
+            {
+                if (sign) {
+                    if (p >= msg.args.size()) { MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NEEDMOREPARAMS(cl.GetNickname(), "MODE") + SEPARATOR); push_message(m); continue; }
+                    param = msg.args[p][0]; p++;
+                    if (param.empty()) {continue;}
+                    chan_it->SetKey(param);
+                    changed = true;
+                } else {
+                    if (p < msg.args.size()) p++;
+                    chan_it->RemoveKey();
+                    changed = true;
+                }
+                break ;
+            }
+
+            case 'l':
+            {
+                if (sign) {
+                    if (p >= msg.args.size()) { MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NEEDMOREPARAMS(cl.GetNickname(), "MODE") + SEPARATOR); push_message(m); continue; }
+                    param = msg.args[p][0]; p++;
+                    if (!is_unsigned_int(param)) continue ;
+                    unsigned int limit = ::atoi(param.c_str());
+                    chan_it->SetUserLimit(limit);
+                    changed = true;
+                } else {
+                    chan_it->RemoveUserLimit();
+                    changed = true;
+                }
+                break ;
+            }
+
+            case 'o':
+            {
+                if (p >= msg.args.size()) { MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NEEDMOREPARAMS(cl.GetNickname(), "MODE") + SEPARATOR); push_message(m); continue; }
+                param = msg.args[p][0];
+                std::map<int, Client>::iterator cit = get_client_by_nick(param);
+                if (cit == Clients_.end()) {MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NOSUCHNICK(cl.GetNickname(), param) + SEPARATOR); push_message(m); continue; }
+                if (chan_it->getClientByNick(param) == chan_it->getClients().end()) {MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_USERNOTINCHANNEL(cl.GetNickname(), param, chan_it->getName()) + SEPARATOR); push_message(m); continue; }
+                if (sign) {
+                    chan_it->GiveOperatorPrivilege(&cl, &cit->second);
+                    changed = true;
+                } else {
+                    chan_it->TakeOperatorPrivilege(&cl, &cit->second);
+                    changed = true;
+                }
+                break;
+            }
+            
+            default:
+                break;
+            }
+            
+            if (changed) {
+                char s = sign ? '+' : '-';
+                if (s != lastSign) {applied += s; lastSign = s;}
+                applied += c;
+                if (!param.empty()) appliedParams += " " + param;
+            }
+        }
+        if (!applied.empty()) {
+            MessageOut m; m.setMessage((PREFIX(cl.GetNickname(), cl.GetUsername(), cl.GetIP())) + " MODE " + chan_it->getName() + " " + applied + appliedParams + SEPARATOR);
+            for (std::vector<Client*>::iterator it = chan_it->getClients().begin(); it != chan_it->getClients().end(); it++) {
+                m.addTarget((*it)->GetFd());
+            }
+            push_message(m);
+        }
+    }
 }
 
 void            Server::kick(MessageIn& msg, Client& cl) {

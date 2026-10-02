@@ -58,27 +58,29 @@ class Channel
         void TakeOperatorPrivilege(Client *client, Client *target);
         bool IsAnOperator(Client *client);
 
-        void SetUserLimit(Client *client, unsigned int limit);
-        void RemoveUserLimit(Client *client);
+        void SetUserLimit(unsigned int limit);
+        void RemoveUserLimit();
 
-        void SetKey(Client *client, std::string key);
-        void RemoveKey(Client *client);
+        void SetKey(std::string key);
+        void RemoveKey();
        
         void SetTopicMode(Client *client);
         void RemoveTopicMode(Client *client);
         void SetTopic(Client *client, std::string topic);
         void RemoveTopic(Client *client);
 
+        bool bitMode(int bit, bool actif);
         
         void MessageClient(Client *client, std::string message);
         void MessageListClients(std::vector<Client*> clients, std::string message);
         
         /************** GETTER **************/
-        std::vector<Client*>&    getClients();
-        std::string&             getName();
-        std::string&             getTopic();
-        std::string              getAuthorTopic();
-        std::string&             getTopicTime();
+        std::vector<Client*>&           getClients();
+        std::string&                    getName();
+        std::string&                    getTopic();
+        std::string                     getAuthorTopic();
+        std::string&                    getTopicTime();
+        std::vector<Client*>::iterator  getClientByNick(const std::string& name);
 
         /************** UTILS ***************/
         std::string get_namereply( void );

@@ -39,10 +39,12 @@ int main( int argc, char **argv )
     int     port;
     if (!args_valid(argc, argv, port)) return 1;
     Server  server(port, argv[2]);
+    // std::cout << server.get_ip() << std::endl;
 
     try
     {
         server.init();
+        std::cout << server.get_ip() << std::endl;
         std::cout << server << std::endl;
         server.run();
     }
@@ -52,6 +54,5 @@ int main( int argc, char **argv )
         return 1;
     }
     
-    std::cout << server.get_ip() << std::endl;
     return 0;
 }
