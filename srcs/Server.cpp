@@ -350,9 +350,10 @@ void            Server::ping(MessageIn &msg, Client &cl) {
     MessageOut  m;
     m.addTarget(cl.GetFd());
     std::string s; for (size_t i = 0; i < msg.args[0].size(); i++) {
-        
+        s += msg.args[0][i];
+        if (i + 1 < msg.args[0].size()) s += ',';
     }
-    m.setMessage("PONG ft_irc :" + msg.args[0][0] + SEPARATOR);
+    m.setMessage("PONG ft_irc :" + s + SEPARATOR);
     this->push_message(m);
 }
 
