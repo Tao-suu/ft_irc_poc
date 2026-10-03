@@ -1,128 +1,122 @@
-#include <iostream>
-#include <vector>
-
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <poll.h>
-#include <fcntl.h>
-#include <sstream> // stringstream
-
-#include "Bot.hpp"
-#include "numerics.h"
-
-#define	PRIMSVMG			std::string("PRIVMSG ")
-#define	WELCOME				std::string("001 ")
-#define WEATHER_BOT_NAME	std::string("WeatherBot")
-#define CHATY_BOT_NAME		std::string("ChatyBot")
-#define WEATHER_BOT_SEP		(WEATHER_BOT_NAME + std::string(" "))
-#define CHATY_BOT_SEP		(CHATY_BOT_NAME + std::string(" "))
-
-void	sendHttpRequest(std::string host, std::string port, std::string &query, std::string &response)
-{
-    int socket_desc;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-    char buffer[4096];
-
-    socket_desc = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_desc < 0)
-        throw std::string("failed to create socket");
-
-    server = gethostbyname(host.c_str());
-    if (server == NULL)
-        throw std::string("could Not resolve hostname :(");
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(std::stoi(port));
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-
-    if (connect(socket_desc, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-        throw std::string("connection failed :(");
-
-    std::string request = "GET " + query + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
-    if (send(socket_desc, request.c_str(), request.size(), 0) < 0)
-        throw std::string("failed to send request...");
-
-    int n;
-    while ((n = recv(socket_desc, buffer, sizeof(buffer), 0)) > 0){
-        response.append(buffer, n);
-    }
-    close(socket_desc);
-}
+#include "bots.h"
 
 void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 {
-	std::cout << bot << " => " << senderNick << " => " << params << std::endl;
+	// std::cout << bot << " => " << senderNick << " => " << params << std::endl;
 
-	std::string	response;
-	std::string	queryParam = (params.find(":") == 0 ? params.substr(1) : params);
+	std::string	response, queryParam, query;
+	std::string	host = "api.openweathermap.org";
+	std::string	post = "80";
 	std::string	apiKey = "6703273dcb390b8667017fa539de9e05";
-	std::string	query = std::string("/geo/1.0/direct?q=") + queryParam + std::string("&limit=1&appid=") + apiKey;
-	sendHttpRequest("api.openweathermap.org", "80", query, response);
-	std::cout << response << std::endl;
+
+	// Retrieve coords from location
+	// http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
+	std::string	city = (params.find(":") == 0 ? params.substr(1) : params);
+	queryParam = std::string("q=") + city;
+	query = std::string("/geo/1.0/direct?") + queryParam + std::string("&limit=1&appid=") + apiKey;
+
+	try {
+		sendHttpRequest(host, post, query, response);
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Unable to contact weather service :(");
+		return ;
+	}
+	// std::cout << response << std::endl;
+	std::string	lat, lon;
+	try {
+		extractFromString(lat, response, "\"lat\":", ",");
+		extractFromString(lon, response, "\"lon\":", ",");
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Invalid city name");
+		return ;
+	}
+	// std::cout << "City: " << city << " / lat: " << lat << " / lon: " << lon << std::endl;
+
+	// Retrieve weather from coords
+	// https://api.openweathermap.org/data/4.0/onecall/current?lat={lat}&lon={lon}&appid={API key}
+	queryParam = std::string("lat=") + lat + std::string("&lon=") + lon;
+	query = std::string("/data/4.0/onecall/current?") + queryParam + std::string("&appid=") + apiKey + std::string("&units=metric");
+	try {
+		sendHttpRequest(host, post, query, response);
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Unable to contact weather service :(");
+		return ;
+	}
+	// std::cout << response << std::endl;
+	std::string	timezone, dt, sunrise, sunset, temp, feels_like, pressure, humidity, clouds, wind_speed, wind_deg, mainW, description;
+	try {
+		extractFromString(timezone, response, "\"timezone\":\"", "\",");
+		extractFromString(dt, response, "\"dt\":", ",");
+		extractFromString(sunrise, response, "\"sunrise\":", ",");
+		extractFromString(sunset, response, "\"sunset\":", ",");
+		extractFromString(temp, response, "\"temp\":", ",");
+		extractFromString(feels_like, response, "\"feels_like\":", ",");
+		extractFromString(pressure, response, "\"pressure\":", ",");
+		extractFromString(humidity, response, "\"humidity\":", ",");
+		extractFromString(clouds, response, "\"clouds\":", ",");
+		extractFromString(wind_speed, response, "\"wind_speed\":", ",");
+		extractFromString(wind_deg, response, "\"wind_deg\":", ",");
+		extractFromString(mainW, response, "\"main\":\"", "\",");
+		extractFromString(description, response, "\"description\":\"", "\",");
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Invalid weather");
+		return ;
+	}
+	sendPrivmsg(bot, senderNick, std::string("City: ") + city + std::string(" / Timezone: ") + timezone + std::string(" / Date: ") + formatDateTime(std::atoll(dt.c_str()), DATE_FORMAT));
+	sendPrivmsg(bot, senderNick, std::string("Current hour: ") + formatDateTime(std::atoll(dt.c_str()), HOUR_FORMAT) + std::string(" / Sunrise: ") + formatDateTime(std::atoll(sunrise.c_str()), HOUR_FORMAT) + std::string(" / Sunset: ") + formatDateTime(std::atoll(sunset.c_str()), HOUR_FORMAT));
+	sendPrivmsg(bot, senderNick, mainW + std::string(": ") + description);
+	sendPrivmsg(bot, senderNick, std::string("Temperature: ") + temp + std::string("C / FeelsLike: ") + feels_like + std::string("C"));
+	sendPrivmsg(bot, senderNick, std::string("Pressure: ") + pressure + std::string("hPa / Humidity: ") + humidity + std::string("% / Clouds: ") + clouds + std::string("%"));
+	sendPrivmsg(bot, senderNick, std::string("WindSpeed: ") + wind_speed + std::string("m/s / WindDirection: ") + wind_deg);
+
+	// {"lat":48.8589,"lon":2.32,"timezone":"Europe/Paris","timezone_offset":7200,"data":[{"dt":1791035918,"sunrise":1791006760,"sunset":1791048406,"temp":22.63,"feels_like":22.23,"pressure":1028,"humidity":49,"dew_point":11.38,"uvi":1.78,"clouds":93,"visibility":10000,"wind_speed":4.12,"wind_deg":10,"weather":[{"id":804,"main":"Clouds","description":"couvert","icon":"04d"}]}]}
+
 }
 void	chaty_bot(Bot &bot, std::string senderNick, std::string params)
 {
 	std::cout << bot << " => " << senderNick << " => " << params << std::endl;
+	sendPrivmsg(bot, senderNick, "ChatyBot is sleeping, leave him alone please");
 }
-
-std::vector<std::string> split(const std::string& s, char del) {
-	std::vector<std::string>	splitted;
-	std::istringstream			ss(s);
-	std::string					buff;
-
-	while (getline(ss, buff, del))
-		if (!buff.empty())
-			splitted.push_back(buff);
-
-	return splitted;
-}
-
 void	receiveDatas(Bot &bot)
 {
-    char    buffer[2048];
-    std::memset(buffer, 0, 2048);
+	char	buffer[2048];
+	std::memset(buffer, 0, 2048);
 
-    ssize_t bytes = recv(bot.socketFd, buffer, 2048, 0);
-    // if (bytes <= 0) {toRemove_.push_back(fd); return ;}
-    if (bytes > 0)  bot.receiveBuffer.append(buffer, bytes); 
+	ssize_t bytes = recv(bot.socketFd, buffer, 2048, 0);
+	if (bytes <= 0) throw std::string("Connection lost");
+	if (bytes > 0) bot.receiveBuffer.append(buffer, bytes); 
 
-    size_t  pos;
-    while ((pos = bot.receiveBuffer.find(SEPARATOR)) != std::string::npos)
-    {
-        std::string line = bot.receiveBuffer.substr(0, pos);
-        bot.receiveBuffer = bot.receiveBuffer.substr(pos + SEPARATOR.size(), bot.receiveBuffer.size() - (pos + SEPARATOR.size()));
+	size_t  pos;
+	while ((pos = bot.receiveBuffer.find(SEPARATOR)) != std::string::npos)
+	{
+		std::string line = bot.receiveBuffer.substr(0, pos);
+		bot.receiveBuffer = bot.receiveBuffer.substr(pos + SEPARATOR.size(), bot.receiveBuffer.size() - (pos + SEPARATOR.size()));
 
-        if ((pos = line.find(WELCOME)) == 0) {
-        	std::vector<std::string>	splitted = split(line, ' ');
+		// std::cout << line << std::endl;
+		if ((pos = line.find(WELCOME)) == 0) {
+			std::vector<std::string>	splitted = split(line, ' ');
 			std::cout << bot.name << " successfuly connected to " << splitted[splitted.size() - 2] << " !" << std::endl;
-        	continue ;
-        }
-        if ((pos = line.find(PRIMSVMG)) == std::string::npos) continue ;
+			continue ;
+		}
+		if ((pos = line.find(PRIMSVMG)) == std::string::npos) continue ;
 
-        std::string cmd = line.substr(pos + PRIMSVMG.size(), line.size() - (pos + PRIMSVMG.size()));
-        std::string	senderNick = line.substr(1, line.find("!") - 1);
-        if ((pos = cmd.find(WEATHER_BOT_SEP)) == 0)
-        	weather_bot(bot, senderNick, cmd.substr(pos + WEATHER_BOT_SEP.size() , cmd.size() - (pos + WEATHER_BOT_SEP.size())));
-        else if ((pos = cmd.find(CHATY_BOT_SEP)) == 0)
-        	chaty_bot(bot, senderNick, cmd.substr(pos + CHATY_BOT_SEP.size(), cmd.size() - (pos + CHATY_BOT_SEP.size())));
-        else
-        	std::cerr << "BAD BOT CMD" << std::endl; // Impossible (sauf si le dev est en carton...)
-		// if (!cv.validateContent(line)) continue ;
-		// MessageIn	msg = cv.parseContent(line);
-		// exec(msg, Clients_[fd]);
-        // if (std::find(toRemove_.begin(), toRemove_.end(), fd) != toRemove_.end()) break;
-    }
+		std::string cmd = line.substr(pos + PRIMSVMG.size(), line.size() - (pos + PRIMSVMG.size()));
+		std::string	senderNick = line.substr(1, line.find("!") - 1);
+		if ((pos = cmd.find(WEATHER_BOT_SEP)) == 0)
+			weather_bot(bot, senderNick, cmd.substr(pos + WEATHER_BOT_SEP.size() , cmd.size() - (pos + WEATHER_BOT_SEP.size())));
+		else if ((pos = cmd.find(CHATY_BOT_SEP)) == 0)
+			chaty_bot(bot, senderNick, cmd.substr(pos + CHATY_BOT_SEP.size(), cmd.size() - (pos + CHATY_BOT_SEP.size())));
+		else
+			std::cerr << "BAD BOT CMD" << std::endl; // Impossible (sauf si le dev est en carton...)
+	}
 }
 
 void	sendDatas(Bot &bot)
 {
 	if (bot.sendList.size() == 0) return ;
 	std::string	toSend = bot.sendList.front() + SEPARATOR;
-    if (send(bot.socketFd, toSend.c_str(), toSend.size(), 0) < 0)
-       throw std::string("Failed to send message from ") + bot.name + std::string("(") + bot.sendList.front() + std::string(")");
+	if (send(bot.socketFd, toSend.c_str(), toSend.size(), 0) < 0)
+		throw std::string("Failed to send message from ") + bot.name + std::string("(") + bot.sendList.front() + std::string(")");
 	bot.sendList.pop_front();
 }
 
@@ -130,34 +124,33 @@ void	startBots(std::vector<Bot> &bots)
 {
 	std::vector<pollfd>	pollFds;
 
-    for (std::vector<Bot>::iterator it = bots.begin(); it != bots.end(); it++) {
-    	pollfd	pollFd;
-        pollFd.fd = (*it).socketFd;
-        pollFd.events = POLLIN | POLLOUT;
-        pollFd.revents = 0;
-        pollFds.push_back(pollFd);
-    }
+	for (std::vector<Bot>::iterator it = bots.begin(); it != bots.end(); it++) {
+		pollfd	pollFd;
+		pollFd.fd = (*it).socketFd;
+		pollFd.events = POLLIN | POLLOUT;
+		pollFd.revents = 0;
+		pollFds.push_back(pollFd);
+	}
 
-    while (1)
-    {
-        if (poll(&pollFds[0], pollFds.size(), -1) == -1)
-        {
-            if (errno == EINTR) continue;
-            throw std::string("Poll error !");
-        }
+	while (1)
+	{
+		if (poll(&pollFds[0], pollFds.size(), -1) == -1)
+		{
+			if (errno == EINTR) continue;
+			throw std::string("Poll error !");
+		}
 
-        for (size_t i = 0; i < pollFds.size(); i++)
-        {
-            if (pollFds[i].revents == 0) continue;						// Nothing append
-            if (pollFds[i].revents & POLLIN) { receiveDatas(bots[i]); }	// Can receive datas
-            if (pollFds[i].revents & POLLOUT) { sendDatas(bots[i]); }	// Can send datas
+		for (size_t i = 0; i < pollFds.size(); i++)
+		{
+			if (pollFds[i].revents == 0) continue;					// Nothing append
+			if (pollFds[i].revents & POLLIN) receiveDatas(bots[i]);	// Can receive datas
+			if (pollFds[i].revents & POLLOUT) sendDatas(bots[i]);	// Can send datas
 
-            // Si poll reçoit une erreur, alors on kill tous les bots (vu qu'ils sont tous liés au même server)
-            if (pollFds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) { throw std::string("Connection lost"); }
-        }
-    }
+			// Si poll reçoit une erreur, alors on kill tous les bots (vu qu'ils sont tous liés au même server)
+			if (pollFds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) throw std::string("Connection lost");
+		}
+	}
 }
-
 
 void	connectBots(std::vector<Bot> &bots, int ac, char **av)
 {
@@ -169,35 +162,18 @@ void	connectBots(std::vector<Bot> &bots, int ac, char **av)
 	}
 
 	// Creating host, port & password
-    std::string host(av[1]);
-    std::string port(av[2]);
-    std::string password(av[3]);
+	std::string host(av[1]);
+	std::string port(av[2]);
+	std::string password(av[3]);
 
-    // Creating server
-    struct hostent *server = gethostbyname(host.c_str());
-    if (server == NULL)
-        throw std::string("Could not resolve hostname :(");
-    struct sockaddr_in serv_addr;
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(std::stoi(port));
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-
-    // Connecting each bot
+	// Connecting each bot
 	for (std::vector<Bot>::iterator it = bots.begin(); it != bots.end(); it++)
 	{
-		std::cout << "Connecting " << (*it).name << " to " << inet_ntoa(serv_addr.sin_addr) << ":" << port << "..." << std::endl;
-
-		// Creating client socket
-	    (*it).socketFd = socket(AF_INET, SOCK_STREAM, 0);
-	    if ((*it).socketFd < 0)
-	        throw std::string("Failed to create socket for ") + (*it).name;
-
-	    // Connecting to server
-	    if (connect((*it).socketFd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	        throw std::string("Connection failed :(");
+		// Connection to server
+		std::cout << "Connecting " << (*it).name << " to " << host << ":" << port << "..." << std::endl;
+		connectToServer(host, port, (*it).socketFd);
    		fcntl((*it).socketFd, F_SETFL, O_NONBLOCK);
-		std::cout << (*it).name << " successfuly connected to " << inet_ntoa(serv_addr.sin_addr) << ":" << port << " !" << std::endl;
+		std::cout << (*it).name << " successfuly connected to " << host << ":" << port << " !" << std::endl;
 
 		// Creating connection messages
 		(*it).sendList.push_back(std::string("PASS ") + password);

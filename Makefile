@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+         #
+#    By: picheval <picheval@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/21 11:48:55 by picheval          #+#    #+#              #
-#    Updated: 2026/09/07 17:48:10 by lbouchar         ###   ########.fr        #
+#    Updated: 2026/10/03 15:04:54 by picheval         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,6 +50,8 @@ DEPS_RAW			= $(SRCS_RAW:.cpp=.d)
 DEPS				= $(addprefix $(DEPS_FOLDER), $(DEPS_RAW))
 
 BOTS_SRCS_RAW		= main.cpp \
+					  serverTools.cpp \
+					  tools.cpp \
 					  Bot.cpp
 BOTS_SRCS			= $(addprefix $(BOTS_SRCS_FOLDER), $(BOTS_SRCS_RAW))
 BOTS_OBJS_RAW		= $(BOTS_SRCS_RAW:.cpp=.o)
