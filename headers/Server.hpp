@@ -16,6 +16,10 @@
 #include <iostream>
 #include <stack>
 
+// bots
+#include <netdb.h>
+#include <stdio.h>
+
 #include "client.hpp"
 #include "CommandValidator.hpp"
 #include "Error.hpp"
@@ -85,7 +89,9 @@ private:
 	void				invite(MessageIn& msg, Client& cl);
 	void				mode(MessageIn& msg, Client& cl);
 	void				privmsg(MessageIn& msg, Client& cl);
-	void				ping(MessageIn& msg, Client& cl);
+    void                ping(MessageIn& msg, Client& cl);
+    void                botWeather(MessageIn& msg, Client& cl);
+	void				bot(MessageIn& msg, Client& cl);
 
 	bool 				            is_nickname_exist(std::string nick);
 	void				            sendWelcome(Client &cl);

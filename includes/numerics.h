@@ -15,6 +15,7 @@
 
 # include <string>
 
+// # define SEPARATOR										std::string("\n")
 # define SEPARATOR										std::string("\r\n")
 
 /*****SOURCE PREFIX*****/
@@ -28,7 +29,7 @@
 // TODO: add [<channel modes with a parameter>]
 # define RPL_MYINFO(client, servername, version, modes)	std::string("004 ") + client + " " + servername + " " + version + " " + modes
 
-# define RPL_LISTSTART(client)                          std::string("321 ") + client + " Channel :Users  Name" 
+# define RPL_LISTSTART(client)                          std::string("321 ") + client + " Channel :Users Name" 
 # define RPL_LIST(client, channel, ccount, topic)       std::string("322 ") + client + " " + channel + " " + ccount + " :" + topic 
 # define RPL_LISTEND(client)                            std::string("323 ") + client + " :End of /LIST"
 
@@ -59,8 +60,8 @@
 
 # define DFL_SETTOPIC(nick, user, host, topic, channel) PREFIX(nick, user, host) + " TOPIC " + channel + " :" + topic
 # define DFL_REMOVETOPICMODE(client, channel)           std::string(client) + " has remove the KEY Mode to the channel " + channel
-/****ERR****/
 
+/****ERR****/
 # define ERR_UNKNOWNERROR(client, command)				std::string("400 ") + client + " " + command + " :Could not process invalid parameters"
 # define ERR_NOSUCHNICK(client, target)          		std::string("401 ") + client + " " + target + " :No such nick/channel"
 # define ERR_NOSUCHCHANNEL(client, channel)             std::string("403 ") + client + " " + channel + " :No such channel"

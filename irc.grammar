@@ -1,0 +1,17 @@
+ows:			0*(SPACE)
+ws:				1*(SPACE)
+
+param_value:	1*(ASCII but NUL, CR, LF, COLON and SPACE)
+param_middle:	param_value *(COLON param_value)
+param_end		param_value *((COLON | SPACE) param_value)
+parameters:		*(ws param_middle) [ws COLON param_end]
+
+tag_value:		EQUAL *(ASCII but NUL, CR, LF, SEMICOLON and SPACE)
+tag_key			1*(ALPHANUM | MINUS)
+tag:			tag_key [tag_value]
+tags:			AT tag 0*(SEMICOLON tag) ws
+
+command:		1*(ALPHA_CAPITALIZE)
+line:			ows [tags] command [parameters] ows
+
+start:			line
