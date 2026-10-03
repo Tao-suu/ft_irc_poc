@@ -28,6 +28,9 @@
 #include "MessageOut.hpp"
 #include "utils.h"
 
+# define DEBUG_IN 1
+# define DEBUG_OUT 1
+
 typedef struct sockaddr_in sockaddr_in;
 typedef struct pollfd pollfd;
 

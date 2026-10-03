@@ -170,8 +170,10 @@ void                Server::handleClientData( int fd )
     {
         std::string line = Clients_[fd]._in_buffer.substr(0, pos);
         Clients_[fd]._in_buffer = Clients_[fd]._in_buffer.substr(pos + SEPARATOR.size(), Clients_[fd]._in_buffer.size() - (pos + SEPARATOR.size()));
-        std::cout << "client fd(" << fd << ") : " << line << SEPARATOR;
-		if (!cv.validateContent(line)) continue ;
+        
+        if (DEBUG_IN) std::cout << "\x1b[31;1m<- client fd(" << fd << ") : " << line << SEPARATOR << "\x1b[0m";
+		
+        if (!cv.validateContent(line)) continue ;
 		MessageIn	msg = cv.parseContent(line);
 		exec(msg, Clients_[fd]);
         if (std::find(toRemove_.begin(), toRemove_.end(), fd) != toRemove_.end()) break;
@@ -182,6 +184,9 @@ void                Server::handleClientWrite( int fd ) {
     std::string& out = Clients_[fd]._out_buffer;
     if (out.empty()) return;
     ssize_t n = ::send(fd, out.c_str(), out.size(), 0);
+
+    if (DEBUG_OUT) std::cout << "\x1b[32;1m-> client fd(" << fd << ") : " << out << "\x1b[0m";
+
     if (n <= 0) { toRemove_.push_back(fd); return; }
     out.erase(0, n);
 }
@@ -222,7 +227,6 @@ void				Server::sendWelcome(Client &cl)
         return ;
     }
         
-    std::cout << "sendWelcome" << SEPARATOR;
 	cl.registered = true;
     std::string     message = RPL_WELCOME(cl.GetNickname()) + "\r\n" +
                             RPL_YOURHOST(cl.GetNickname(), "ft_irc", "version") + "\r\n" +
@@ -637,8 +641,8 @@ void            Server::kick(MessageIn& msg, Client& cl) {
             std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[1][i]);
             if (cit == Clients_.end())
                 throw Error(cl, ERR_NOSUCHNICK(cl.GetNickname(), msg.args[1][i]));
-            if (!chan_it->IsClientInChannel(&cl))
-            throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[0][0]));
+            if (!chan_it->IsClientInChannel(&cit->second))
+                throw Error(cl, ERR_USERNOTINCHANNEL(cl.GetNickname(), cit->second.GetNickname(), msg.args[0][0]));
             chan_it->KickClient(&cl, &cit->second, comment);
         }
     catch(const Error& e) 
