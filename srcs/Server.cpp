@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <string>
 
 Server::Server( void ): port_(0), pass_("") {}
 Server::Server( int port, std::string pass ): port_(port), pass_(pass) {}
@@ -203,6 +204,7 @@ void				Server::exec(MessageIn &msg, Client& sender)
         else if (cmdName == "MODE") mode(msg, sender);
         else if (cmdName == "INVITE") invite(msg, sender);
         else if (cmdName == "BOT") bot(msg, sender);
+        else if (cmdName == "KICK") kick(msg, sender);
 		else throw Error(sender, ERR_UNKNOWCOMMAND((sender.GetNickname().empty() ? "*" : sender.GetNickname()), msg.cmdName));
 	} catch (Error &e) {
         e._msg += SEPARATOR;
@@ -624,12 +626,12 @@ void            Server::kick(MessageIn& msg, Client& cl) {
     std::vector<Channel>::iterator  chan_it = get_channel(msg.args[0][0]);
     if (chan_it == Channels_.end())
         throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][0]));
-    if  (chan_it->IsAnOperator(&cl))
+    if (!chan_it->IsAnOperator(&cl))
         throw Error(cl, ERR_CHANOPRIVSNEEDED(cl.GetNickname(), msg.args[0][0]));
     std::string comment = "";
-    if (!msg.args[2].empty() && !msg.args[2][0].empty()){ 
-        comment = msg.args[2][0];}
-
+    if (msg.args.size() > 2 && !msg.args[2].empty() && !msg.args[2][0].empty()){ 
+        comment = msg.args[2][0];
+    }
     for (size_t i = 0; i < msg.args[1].size(); i++) {
     try {
             std::map<int, Client>::iterator cit = get_client_by_nick(msg.args[1][i]);
@@ -652,7 +654,7 @@ void            Server::part(MessageIn& msg, Client& cl)
      if (!cl.registered)
         throw Error(cl, ERR_NOTREGISTERED(cl.GetNickname()));
     if (msg.args.size() < 1)
-        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "KICK"));
+        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "PART"));
     std::string reason = "";
     if (msg.args.size() >= 2 && !msg.args[1].empty() && !msg.args[1][0].empty()){ 
         reason = msg.args[1][0];}
@@ -663,7 +665,11 @@ void            Server::part(MessageIn& msg, Client& cl)
                 throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][i]));
             if (!chan_it->IsClientInChannel(&cl))
                 throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[0][i]));
-            chan_it->PartClient(&cl, reason);}
+            chan_it->PartClient(&cl, reason);
+            if (chan_it->getClients().size() == 0) {
+                Channels_.erase(chan_it);
+            }
+        }
         catch(const Error& e) 
         {
             MessageOut  m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
@@ -704,7 +710,7 @@ void            Server::botWeather(MessageIn& msg, Client& cl) {
 	    }
 	    bzero((char *) &serv_addr, sizeof(serv_addr));
 	    serv_addr.sin_family = AF_INET;
-	    serv_addr.sin_port = htons(std::stoi(port));
+	    serv_addr.sin_port = htons(std::atoi(port.c_str()));
 	    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 
 	    if (connect(socket_desc, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){

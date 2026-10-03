@@ -72,14 +72,13 @@ void Channel::ExitClient(Client *client)
 
 void Channel::KickClient(Client *client, Client *target,  std::string comment)
 {
+    MessageListClients(getClients(), PREFIX(client->GetNickname(), client->GetUsername(), client->GetIP()) + " KICK " + _Name + " " + target->GetNickname() + " :" + comment);
     ExitClient(target);
-    MessageClient(target, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name, comment));
-    MessageClient(client, DFL_KICK(client->GetNickname(), target->GetNickname(), _Name, comment));
 }
 
 void Channel::PartClient(Client *client, std::string reason)
 {
-    MessageClient(client, PREFIX(client->GetNickname(),client->GetUsername(), client->GetIP()) + " PART " + _Name + ' ' + reason + SEPARATOR);
+    MessageClient(client, PREFIX(client->GetNickname(),client->GetUsername(), client->GetIP()) + " PART " + _Name + ' ' + reason);
     ExitClient(client);
 }
 
