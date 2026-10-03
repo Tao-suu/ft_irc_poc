@@ -54,8 +54,8 @@ class Channel
         void SetInviteOnlyMode(Client *client);
         void RemoveInviteOnlyMode(Client *client);
 
-        void GiveOperatorPrivilege(Client *client, Client *target);
-        void TakeOperatorPrivilege(Client *client, Client *target);
+        bool GiveOperatorPrivilege(Client *target);
+        bool TakeOperatorPrivilege(Client *target);
         bool IsAnOperator(Client *client);
 
         void SetUserLimit(unsigned int limit);

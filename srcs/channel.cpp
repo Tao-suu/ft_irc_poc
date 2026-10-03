@@ -97,8 +97,8 @@ bool Channel::IsClientInChannel(Client *client) const
 void Channel::InvitClient(Client *client, Client *target)
 {
     _Invitations.push_back(target);
-    MessageClient(client, RPL_INVITING(client->GetNickname(), client->GetNickname(), _Name));
-    MessageClient(target, DFL_INVITE(client->GetNickname(), target->GetNickname(), _Name));
+    MessageClient(client, RPL_INVITING(client->GetNickname(), target->GetNickname(), _Name));
+    MessageClient(target, PREFIX(client->GetNickname(), client->GetUsername(), client->GetIP()) + " INVITE " + target->GetNickname() + " " + _Name);
 }
 
 bool Channel::IsClientInvited(Client *client) const
@@ -134,28 +134,19 @@ void Channel::RemoveInviteOnlyMode(Client *client)
 /*      OPERATOR MODE    */
 /*************************/
 
-void Channel::GiveOperatorPrivilege(Client *client, Client *target)
+bool Channel::GiveOperatorPrivilege(Client *target)
 {
-    if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
-    if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
-    if (!IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), target->GetNickname(), _Name));
+    if (std::find(_Operators.begin(), _Operators.end(), target) != _Operators.end()) return false;
     _Operators.push_back(target);
-   MessageListClients(_Clients, DFL_GIVEOPERATORPRIVILEGE(client->GetNickname(), client->GetUsername(), client->GetIP(), _Name, target->GetNickname()));
+    return true;
 }
 
-void Channel::TakeOperatorPrivilege(Client *client, Client *target)
+bool Channel::TakeOperatorPrivilege(Client *target)
 {
-    if (!IsClientInChannel(client))
-        throw Error(*client, ERR_NOTONCHANNEL(client->GetNickname(), _Name));
-    if (!IsAnOperator(client))
-        throw Error(*client, ERR_CHANOPRIVSNEEDED(client->GetNickname(), _Name));
-    if (IsClientInChannel(target))
-        throw Error(*client, ERR_USERONCHANNEL(client->GetNickname(), target->GetNickname(), _Name));
-    _Operators.erase(std::find(_Operators.begin(), _Operators.end(), target));
-    MessageListClients(_Clients, DFL_TAKEOPERATORPRIVILEGE(client->GetNickname(), client->GetUsername(), client->GetIP(), _Name, target->GetNickname()));
+    std::vector<Client *>::iterator cit = std::find(_Operators.begin(), _Operators.end(), target);
+    if (cit == _Operators.end()) return false;
+    _Operators.erase(cit);
+    return true;
 }
 
 bool Channel::IsAnOperator(Client *client)

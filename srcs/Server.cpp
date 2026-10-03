@@ -199,8 +199,9 @@ void				Server::exec(MessageIn &msg, Client& sender)
         else if (cmdName == "PRIVMSG") privmsg(msg, sender);
         else if (cmdName == "TOPIC") topic(msg, sender);
         else if (cmdName == "LIST") list(msg, sender);
-        else if (cmdName == "PART") list(msg, sender);
+        else if (cmdName == "PART") part(msg, sender);
         else if (cmdName == "MODE") mode(msg, sender);
+        else if (cmdName == "INVITE") invite(msg, sender);
 		else throw Error(sender, ERR_UNKNOWCOMMAND((sender.GetNickname().empty() ? "*" : sender.GetNickname()), msg.cmdName));
 	} catch (Error &e) {
         e._msg += SEPARATOR;
@@ -567,11 +568,12 @@ void            Server::mode(MessageIn& msg, Client& cl) {
                     param = msg.args[p][0]; p++;
                     if (!is_unsigned_int(param)) continue ;
                     unsigned int limit = ::atoi(param.c_str());
+                    if (limit == 0) continue;
                     chan_it->SetUserLimit(limit);
                     changed = true;
                 } else {
-                    chan_it->RemoveUserLimit();
-                    changed = true;
+                    changed = chan_it->bitMode(MODE_USER_LIMIT, false);
+                    if (changed) chan_it->RemoveUserLimit();
                 }
                 break ;
             }
@@ -579,21 +581,19 @@ void            Server::mode(MessageIn& msg, Client& cl) {
             case 'o':
             {
                 if (p >= msg.args.size()) { MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NEEDMOREPARAMS(cl.GetNickname(), "MODE") + SEPARATOR); push_message(m); continue; }
-                param = msg.args[p][0];
+                param = msg.args[p][0]; p++;
                 std::map<int, Client>::iterator cit = get_client_by_nick(param);
                 if (cit == Clients_.end()) {MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_NOSUCHNICK(cl.GetNickname(), param) + SEPARATOR); push_message(m); continue; }
                 if (chan_it->getClientByNick(param) == chan_it->getClients().end()) {MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(ERR_USERNOTINCHANNEL(cl.GetNickname(), param, chan_it->getName()) + SEPARATOR); push_message(m); continue; }
                 if (sign) {
-                    chan_it->GiveOperatorPrivilege(&cl, &cit->second);
-                    changed = true;
+                    changed = chan_it->GiveOperatorPrivilege(&cit->second);
                 } else {
-                    chan_it->TakeOperatorPrivilege(&cl, &cit->second);
-                    changed = true;
-                }
-                break;
+                    changed = chan_it->TakeOperatorPrivilege(&cit->second);
+                } break;
             }
             
             default:
+                MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(std::string("472 " + cl.GetNickname() + ' ' + c + " :is unknow char to me" + SEPARATOR)); push_message(m);
                 break;
             }
             
@@ -653,17 +653,17 @@ void            Server::part(MessageIn& msg, Client& cl)
     if (msg.args.size() < 1)
         throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "KICK"));
     std::string reason = "";
-    if (!msg.args[1].empty() && !msg.args[1][0].empty()){ 
+    if (msg.args.size() >= 2 && !msg.args[1].empty() && !msg.args[1][0].empty()){ 
         reason = msg.args[1][0];}
-    for (size_t i = 0; i < msg.args[1].size(); i++) {
-    try {
-            std::vector<Channel>::iterator  chan_it = get_channel(msg.args[i][0]);
+    for (size_t i = 0; i < msg.args[0].size(); i++) {
+        try {
+            std::vector<Channel>::iterator  chan_it = get_channel(msg.args[0][i]);
             if (chan_it == Channels_.end())
-                throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[i][0]));
+                throw Error(cl, ERR_NOSUCHCHANNEL(cl.GetNickname(), msg.args[0][i]));
             if (!chan_it->IsClientInChannel(&cl))
-                throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[i][0]));
+                throw Error(cl, ERR_NOTONCHANNEL(cl.GetNickname(), msg.args[0][i]));
             chan_it->PartClient(&cl, reason);}
-    catch(const Error& e) 
+        catch(const Error& e) 
         {
             MessageOut  m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
             this->push_message(m);
