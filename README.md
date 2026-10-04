@@ -1,3 +1,5 @@
+*This project has been created as part of the 42 curriculum by lbouchar, picheval, tbez--du*
+
 # DESCRIPTION
 
 ## Definition
@@ -20,11 +22,11 @@ The server must support the following client functionality:
 - Leaving channels
 - Public channel messages
 - Private messages
-- Channel operators
-- Channel modes
 - Channel invitations
 - Kicking users
 - Changing channel topics
+- Channel operators
+- Channel modes
 
 Bonus : File transfert and bot
 
@@ -39,32 +41,25 @@ The password is chosen by the server operator and is required by clients when co
 For example:
 ./ircserv 12345 mypassword
 
-2) Connecting server
+2) Connecting server with nc
 Using Netcat from another terminal:
 nc <ip> <port>
 then PASS, NICK, USER (see explanation below)
+Be careful - you need to put ^V^M at the end of line
 
 For example:
 nc localhost 12345
+PASS toto
+NICK Moulinette
+USER t t t t (or any letters)
 
-! Be careful - you need to put ^M at the end of line !
-PASS toto^M
-NICK Moulinette^M
-USER M M M M^M (or any letters)
-
-
-or
-
-Using Irssi
+3) Connecting server with irssi
 irssi
 /connect <ip> <port> <password>
 For example:
 /connect localhost 12345 mypassword
 
-3) Client Authentication
-
-Before using most IRC commands, the client must register with the server.
-
+4) IRC COMMANDS
 - PASS
 Provides the password required by the server, it must match the password used when starting the server.
 PASS <password>
@@ -73,17 +68,11 @@ PASS <password>
 Sets the client's nickname, which identifies the client on the IRC server and must be unique.
 NICK <nickname>
 
-
 - USER
 Registers the username and real name of the client, they are used by the server to identify the client.
 USER <username> <mode> <unused> <realname>
 Example:
 USER alice 0 * Alice Smith
-
-
-After successful authentication, the client can join channels and communicate with other users.
-
-4) IRC COMMANDS
 
 - JOIN
 Joins one or more IRC channels.
@@ -165,19 +154,17 @@ For channels, the supported modes are:
 +o	or -o Operator : Gives or removes operator privileges
 +l	or -l User limit	: Sets the maximum number of users
 
-
 - BOT WEATHER
 Requests weather information for a city.
-BOT WEATHER <city>
+PRIVMSG WeatherBot <city>
 Example:
-BOT WEATHER Paris
-
+PRIVMSG WeatherBot Paris
 
 - BOT CHATGPT
 Sends a message to the ChatGPT-powered bot.
-BOT CHATGPT <text>
+PRIVMSG ChatyBot :<text>
 Example:
-BOT CHATGPT Explain how IRC channels work
+PRIVMSG ChatyBot :Explain how IRC channels work ?
 
 # RESOURCES
 IRC Documentation
@@ -189,4 +176,7 @@ ft_irc Channel and Command Management
 Tutorial about implementing channels and command management for ft_irc:
 "https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b?utm_source=chatgpt.com"
 
-ChatGPT - Readme
+API ChatyBot https://console.groq.com/docs/overview 
+API WheatherBot https://openweathermap.org/api/one-call-4?collection=one_call_api 
+
+ChatGPT - structure of the Readme
