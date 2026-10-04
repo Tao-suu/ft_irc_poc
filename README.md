@@ -39,17 +39,17 @@ The password is chosen by the server operator and is required by clients when co
 1) Launch server
 ./ircserv <port> <password>
 For example:
-./ircserv 12345 mypassword
+./ircserv 1234 mypassword
 
 2) Connecting server with nc
-Using Netcat from another terminal:
+Using Netcat from another terminal with the port used to launch the server:
 nc <ip> <port>
 then PASS, NICK, USER (see explanation below)
 Be careful - you need to put ^V^M at the end of line
 
 For example:
-nc localhost 12345
-PASS toto
+nc localhost 1234
+PASS mypassword
 NICK Moulinette
 USER t t t t (or any letters)
 
@@ -57,7 +57,7 @@ USER t t t t (or any letters)
 irssi
 /connect <ip> <port> <password>
 For example:
-/connect localhost 12345 mypassword
+/connect localhost 1234 mypassword
 
 4) IRC COMMANDS
 - PASS
@@ -153,6 +153,17 @@ For channels, the supported modes are:
 +k	or -k Channel key :	A password is required to join the channel
 +o	or -o Operator : Gives or removes operator privileges
 +l	or -l User limit	: Sets the maximum number of users
+
+
+5) BONUS
+Bots are clients, you need to launch them with
+make ircevbots
+./ircbots localhost 1234 toto
+
+### // cle API (add how to put the key)
+
+Then in your first client terminal
+PRIVMSG <bot> <arg>
 
 - BOT WEATHER
 Requests weather information for a city.
