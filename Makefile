@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: picheval <picheval@student.42.fr>          +#+  +:+       +#+         #
+#    By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/21 11:48:55 by picheval          #+#    #+#              #
-#    Updated: 2026/10/03 15:04:54 by picheval         ###   ########.fr        #
+#    Updated: 2026/10/04 14:55:07 by lbouchar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -75,7 +75,7 @@ $(NAME): $(OBJS)
 	@echo "$(SYMBOL)$(C_BLUE)$(NAME) compiled !$(C_NONE)"
 
 $(BOTS_NAME): $(BOTS_OBJS)
-	@$(CC) $(CFLAGS) $(LIBS_FLAGS) $^ -o $@
+	@$(CC) $(CFLAGS) $(LIBS_FLAGS) -lssl -lcrypto $^ -o $@
 	@echo "$(SYMBOL)$(C_BLUE)$(BOTS_NAME) compiled !$(C_NONE)"
 
 -include $(DEPS)

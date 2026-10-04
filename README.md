@@ -42,8 +42,16 @@ For example:
 2) Connecting server
 Using Netcat from another terminal:
 nc <ip> <port>
+then PASS, NICK, USER (see explanation below)
+
 For example:
-nc 127.0.0.1 12345
+nc localhost 12345
+
+! Be careful - you need to put ^M at the end of line !
+PASS toto^M
+NICK Moulinette^M
+USER M M M M^M (or any letters)
+
 
 or
 
@@ -51,7 +59,7 @@ Using Irssi
 irssi
 /connect <ip> <port> <password>
 For example:
-/connect 127.0.0.1 12345 mypassword
+/connect localhost 12345 mypassword
 
 3) Client Authentication
 
@@ -151,13 +159,12 @@ The MODE command is used to view or modify channel settings.
 MODE <target> [<modestring> [<mode arguments>...]]
 For channels, the supported modes are:
 
-Mode	Name	Description
-+i	Invite-only	Only invited users can join the channel
-+t	Topic protection	Only operators can change the topic
-+k	Channel key	A password is required to join the channel
-+o	Operator	Gives or removes operator privileges
-+l	User limit	Sets the maximum number of users
-Mode i — Invite Only
++i	or -i Invite-only : Only invited users can join the channel
++t	or -t Topic protection : Only operators can change the topic
++k	or -k Channel key :	A password is required to join the channel
++o	or -o Operator : Gives or removes operator privileges
++l	or -l User limit	: Sets the maximum number of users
+
 
 - BOT WEATHER
 Requests weather information for a city.

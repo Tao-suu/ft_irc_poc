@@ -42,6 +42,53 @@ void	sendHttpRequest(std::string host, std::string port, std::string &query, std
 	close(socketFd);
 }
 
+void	sendHttpRequest(std::string host, std::string port, std::string &query, std::string &response, std::string body, std::string api_key)
+{
+	int socketFd;
+	char buffer[4096];
+
+	connectToServer(host, port, socketFd);
+
+    SSL_CTX* ctx = SSL_CTX_new(TLS_client_method());
+    SSL_CTX_set_verify(
+        ctx,
+        SSL_VERIFY_PEER,
+        NULL
+    );
+    SSL_CTX_set_default_verify_paths(ctx);
+    SSL* ssl = SSL_new(ctx);
+    SSL_set_tlsext_host_name(ssl, host.c_str());
+    SSL_set_fd(ssl, socketFd);
+    if (SSL_connect(ssl) != 1)
+    {
+        ERR_print_errors_fp(stderr);
+        return;
+    }
+
+	std::stringstream ss;
+	ss << body.size();
+	std::string str = ss.str();
+	std::string request = "POST " + query + " HTTP/1.1\r\nHost: " + host
+	+ "\r\nAuthorization: Bearer " + api_key + "\r\nContent-Type: application/json\r\nContent-Length: " + str + "\r\nConnection: close\r\n\r\n" + body;
+	
+	SSL_write(
+        ssl,
+        request.data(),
+        request.size()
+    );
+
+	int n;
+	while ((n = SSL_read(ssl, buffer, sizeof(buffer))) > 0)
+		response.append(buffer, n);
+	
+	SSL_shutdown(ssl);
+    SSL_free(ssl);
+
+	close(socketFd);
+
+    SSL_CTX_free(ctx);
+}
+
 void	sendPrivmsg(Bot &bot, std::string &senderNick, std::string msg)
 {
 	bot.sendList.push_back(std::string("PRIVMSG ") + senderNick + std::string(" :") + msg);

@@ -7,7 +7,7 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 	std::string	response, queryParam, query;
 	std::string	host = "api.openweathermap.org";
 	std::string	post = "80";
-	std::string	apiKey = "6703273dcb390b8667017fa539de9e05";
+	std::string	apiKey = "";
 
 	// Retrieve coords from location
 	// http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
@@ -21,7 +21,7 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 		sendPrivmsg(bot, senderNick, "Unable to contact weather service :(");
 		return ;
 	}
-	// std::cout << response << std::endl;
+	std::cout << response << std::endl;
 	std::string	lat, lon;
 	try {
 		extractFromString(lat, response, "\"lat\":", ",");
@@ -74,9 +74,31 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 }
 void	chaty_bot(Bot &bot, std::string senderNick, std::string params)
 {
-	std::cout << bot << " => " << senderNick << " => " << params << std::endl;
-	sendPrivmsg(bot, senderNick, "ChatyBot is sleeping, leave him alone please");
+	std::string	response, queryParam, query;
+	std::string	host = "api.groq.com";
+	std::string	post = "443";
+	std::string	apiKey = "";
+	query = std::string("/openai/v1/chat/completions");
+	std::string BodyRequest = (params.find(":") == 0 ? params.substr(1) : params) + " (answer only with ascci characters from 1 to 127, without NUL, CR, LF)";
+	std::string body = "{\"messages\": [{\"role\": \"user\",\"content\": \"" + BodyRequest + "\"}],\"model\": \"openai/gpt-oss-120b\",\"temperature\": 1,\"max_completion_tokens\": 2048,\"top_p\": 1,\"stream\": false,\"reasoning_effort\": \"medium\",\"stop\": null}";
+
+	try {
+		sendHttpRequest(host, post, query, response, body, apiKey);
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Unable to contact Chaty_bot service :(");
+		return ;
+	}
+
+	std::string	chat;
+	try {
+		extractFromString(chat, response, "\"content\":\"", "\",");
+	} catch(std::string &msg) {
+		sendPrivmsg(bot, senderNick, "Invalid request");
+		return ;
+	}
+	sendPrivmsg(bot, senderNick, chat);
 }
+
 void	receiveDatas(Bot &bot)
 {
 	char	buffer[2048];

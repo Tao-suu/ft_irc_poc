@@ -13,6 +13,9 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "Bot.hpp"
 #include "numerics.h"
 
@@ -29,6 +32,7 @@
 void						createServerAddr(std::string &host, std::string &port, struct sockaddr_in &serv_addr);
 void						connectToServer(std::string &host, std::string &port, int &socketFd);
 void						sendHttpRequest(std::string host, std::string port, std::string &query, std::string &response);
+void	                    sendHttpRequest(std::string host, std::string port, std::string &query, std::string &response, std::string body, std::string api_key);
 void						sendPrivmsg(Bot &bot, std::string &senderNick, std::string msg);
 
 //tools.cpp
