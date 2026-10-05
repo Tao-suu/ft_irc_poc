@@ -152,6 +152,8 @@ Validator::Validator(void)
 	this->char_masks[125] = C_TAG_VALUE | C_PARAM_VALUE;	// }
 	this->char_masks[126] = C_TAG_VALUE | C_PARAM_VALUE;	// ~
 	this->char_masks[127] = C_TAG_VALUE | C_PARAM_VALUE;	// DEL
+	for (int i = 128; i < 256; i++)
+		this->char_masks[i] = C_TAG_VALUE | C_PARAM_VALUE;
 }
 Validator::Validator(Validator const &other)
 {
@@ -333,7 +335,7 @@ bool			Validator::find_nb_char(int mask, int min, int max)
 	i = 0;
 	for (std::string::iterator it = this->content.begin() + this->cursor; it != this->content.end(); it++)
 	{
-		val_char_mask = this->char_masks[(int)*it];
+		val_char_mask = this->char_masks[static_cast<unsigned char>(*it)];
 		if ((val_char_mask & mask) != mask)
 			break ;
 		if (max > -1 && i == max)

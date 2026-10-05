@@ -29,7 +29,7 @@ private:
 	size_t				print_level;
 	static const size_t	PARSE_DEBUG_LENGHT = 20;
 	static const size_t	PARSE_DEBUG_ALIGN = 60;
-	int					char_masks[128]; // TODO tableau
+	int					char_masks[256]; // TODO tableau
 	
 	// Methods
 	virtual bool		start(void) = 0;
