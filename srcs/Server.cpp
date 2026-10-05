@@ -227,10 +227,11 @@ void				Server::sendWelcome(Client &cl)
     }
         
 	cl.registered = true;
+    std::time_t datetime = std::time(NULL);
     std::string     message = RPL_WELCOME(cl.GetNickname()) + "\r\n" +
-                            RPL_YOURHOST(cl.GetNickname(), "ft_irc", "version") + "\r\n" +
-                            RPL_CREATED(cl.GetNickname(), "datetime") + "\r\n" + 
-                            RPL_MYINFO(cl.GetNickname(), "ft_irc", "version", "modes") + "\r\n";
+                            RPL_YOURHOST(cl.GetNickname(), PROGRAM_NAME, VERSION) + "\r\n" +
+                            RPL_CREATED(cl.GetNickname(),std::asctime(std::localtime(&datetime)) ) + "\r\n" + 
+                            RPL_MYINFO(cl.GetNickname(), PROGRAM_NAME, VERSION, MODE) + "\r\n";
     std::vector<int>    targets; targets.push_back(cl.GetFd());
     message_stack.push_front(MessageOut(message, targets));                     
 }

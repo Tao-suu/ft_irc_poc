@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <iostream>
 #include <stack>
+#include <ctime>
 
 // bots
 #include <netdb.h>

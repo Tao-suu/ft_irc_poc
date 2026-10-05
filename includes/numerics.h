@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   numerics.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
+/*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/10/03 16:11:15 by picheval         ###   ########.fr       */
+/*   Updated: 2026/10/05 17:37:48 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@
 
 // # define SEPARATOR										std::string("\n")
 # define SEPARATOR										std::string("\r\n")
-
+# define PROGRAM_NAME									std::string("ft_irc")
+# define VERSION										std::string("1.0")
+# define MODE                                           std::string("klot")
 /*****SOURCE PREFIX*****/
 # define PREFIX(nick, user, host)                       std::string(":") + nick + "!" + user + "@" + host
 
