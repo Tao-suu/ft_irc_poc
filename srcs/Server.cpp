@@ -88,7 +88,8 @@ void    Server::run ( void )
             for (std::vector<Channel>::iterator chan_it = Channels_.begin(); chan_it != Channels_.end();) {
                 if (chan_it->IsClientInChannel(&Clients_[fd])) {
                     for (std::vector<Client *>::iterator cit = chan_it->getClients().begin(); cit != chan_it->getClients().end(); cit++) {
-                        if ((*cit)->GetFd() != fd && std::find(peers.begin(), peers.end(), (*cit)->GetFd()) != peers.end()) peers.push_back((*cit)->GetFd());
+                        if (chan_it->IsClientInvited(*cit)) chan_it->RemoveInvitation(*cit); 
+                        if ((*cit)->GetFd() != fd && std::find(peers.begin(), peers.end(), (*cit)->GetFd()) == peers.end()) peers.push_back((*cit)->GetFd());
                     }
                     chan_it->ExitClient(&Clients_[fd]);
                     if (chan_it->getClients().size() == 0) {
@@ -97,7 +98,7 @@ void    Server::run ( void )
                 }
                 chan_it++;
             }
-            MessageOut m(PREFIX(Clients_[fd].GetNickname(), Clients_[fd].GetUsername(), Clients_[fd].GetIP()) + " QUIT :Salut mon pote !" + SEPARATOR, peers);
+            MessageOut m(PREFIX(Clients_[fd].GetNickname(), Clients_[fd].GetUsername(), Clients_[fd].GetIP()) + " QUIT :Salut mon pote !" + SEPARATOR, peers); push_message(m);
 
             Clients_.erase(fd);
             close(fd);
@@ -280,7 +281,7 @@ std::vector<Channel>::iterator Server::get_channel(std::string name) {
 
 std::map<int, Client>::iterator Server::get_client_by_nick(std::string nick) {
     for (std::map<int, Client>::iterator it = Clients_.begin(); it != Clients_.end(); it++) {
-        if (!it->second.registered) return Clients_.end();
+        if (!it->second.registered) continue ;
         if (to_upper_string(it->second.GetNickname()) == to_upper_string(nick)) return it;
     }
     return Clients_.end();

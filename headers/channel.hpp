@@ -51,6 +51,7 @@ class Channel
 
         void InvitClient(Client *client, Client *target);
         bool IsClientInvited(Client *client) const;
+        void RemoveInvitation(Client *client);
         void SetInviteOnlyMode(Client *client);
         void RemoveInviteOnlyMode(Client *client);
 
@@ -84,6 +85,7 @@ class Channel
         int                             getMode();
         std::string&                    getKey();
         std::string                     getUserlimit();
+        std::vector<Client*>&           getInvitations();
 
         /************** UTILS ***************/
         std::string get_namereply( void );

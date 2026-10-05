@@ -107,6 +107,12 @@ bool Channel::IsClientInvited(Client *client) const
     return true;
 }
 
+void Channel::RemoveInvitation(Client *client) {
+    std::vector<Client*>::iterator it = std::find(_Invitations.begin(), _Invitations.end(), client);
+    if (it == _Invitations.end()) return ;
+    _Invitations.erase(it);
+}
+
 void Channel::SetInviteOnlyMode(Client *client)
 {
     if (IsAnOperator(client))
@@ -264,7 +270,7 @@ std::vector<Client*>::iterator  Channel::getClientByNick(const std::string& name
 int                             Channel::getMode() { return _Mode; }
 std::string                     Channel::getUserlimit() { std::ostringstream ss; ss << _UserLimit; std::string tmp = ss.str(); return tmp; }
 std::string&                    Channel::getKey() { return _Key; }
-
+std::vector<Client*>&           Channel::getInvitations() { return _Invitations; }
 
 /*************************/
 /*         UTILS         */
