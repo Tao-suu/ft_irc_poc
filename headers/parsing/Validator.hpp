@@ -1,22 +1,11 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Validator.hpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/13 16:44:52 by picheval          #+#    #+#             */
-/*   Updated: 2026/08/31 16:09:01 by picheval         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef VALIDATOR_HPP
 # define VALIDATOR_HPP
 
 # include <iostream>
 # include <algorithm>
-# include <cstdlib> // EXIT_FAILURE
-# include <sstream> // stringstream
+# include <cstdlib>
+# include <sstream>
 # include "validator.h"
 # include "MessageIn.hpp"
 
@@ -29,7 +18,7 @@ private:
 	size_t				print_level;
 	static const size_t	PARSE_DEBUG_LENGHT = 20;
 	static const size_t	PARSE_DEBUG_ALIGN = 60;
-	int					char_masks[256]; // TODO tableau
+	int					char_masks[256];
 	
 	// Methods
 	virtual bool		start(void) = 0;
@@ -58,8 +47,6 @@ protected:
 	bool				global_val_ws(void);
 
 public:
-	// Attributes
-
 	// Constructors / Destructor
 	Validator(void);
 	Validator(Validator const &other);
@@ -68,13 +55,9 @@ public:
 	// Operators overload
 	Validator			&operator=(Validator const &other);
 
-	// Getters
-
-	// Setters
-
 	// Methods
 	bool				validateContent(std::string content);
-	MessageIn				parseContent(std::string content);
+	MessageIn			parseContent(std::string content);
 };
 
 #endif

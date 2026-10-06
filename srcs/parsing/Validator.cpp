@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Validator.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: picheval <picheval@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/13 16:44:19 by picheval          #+#    #+#             */
-/*   Updated: 2026/08/31 16:04:31 by picheval         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #include "Validator.hpp"
 
@@ -18,11 +7,6 @@
 // Constructors / Destructor
 Validator::Validator(void)
 {
-	// C_SPACE:			SP
-	// C_TAG_KEY:		[a-zA-Z0-9] -
-	// C_TAG_VALUE:		everything but NUL CR LF SEMICOLON and SP
-	// C_CMD:			[A-Z]
-	// C_PARAM_VALUE:	everything but NUL CR LF COLON and SP
 
 	this->char_masks[0] = C_NONE;	// NUL \0
 	this->char_masks[1] = C_TAG_VALUE | C_PARAM_VALUE;	// SOH
@@ -177,12 +161,6 @@ Validator	&Validator::operator=(Validator const &other)
 	return (*this);
 }
 
-// Getters
-
-// Setters
-
-// Methods
-
 inline std::vector<std::string> split(const std::string& s, char del) {
 	std::vector<std::string>	splitted;
 	std::istringstream			ss(s);
@@ -244,6 +222,7 @@ MessageIn		Validator::parseContent(std::string content)
 	}
 	return (msg);
 }
+
 bool		Validator::validateContent(std::string content)
 {
 	this->content = content;
@@ -315,6 +294,7 @@ bool		Validator::find_string(std::string str)
 	this->cursor += str.length();
 	return (post_lexer_rule(str, old_cursor, true));
 }
+
 bool		Validator::print_syntax_error(void)
 {
 	std::cerr << "Error: Syntax error on line 1:" << this->max_cursor + 1;
@@ -327,6 +307,7 @@ bool		Validator::print_syntax_error(void)
 	}
 	return (this->print_syntax_error_line_cursor());
 }
+
 bool			Validator::find_nb_char(int mask, int min, int max)
 {
 	int			val_char_mask;
@@ -348,7 +329,6 @@ bool			Validator::find_nb_char(int mask, int min, int max)
 	return (true);
 }
 
-
 /*******************/
 /* Private methods */
 /*******************/
@@ -368,6 +348,7 @@ void		Validator::print_ascii(std::string &str, const size_t index, const size_t 
 		i++;
 	}
 }
+
 void		Validator::print_space(const size_t nb_spaces)
 {
 	size_t	i;
@@ -376,11 +357,13 @@ void		Validator::print_space(const size_t nb_spaces)
 	while (++i < nb_spaces)
 		std::cout << " ";
 }
+
 size_t		Validator::print_tabs(const size_t nb_tabs)
 {
 	print_space(nb_tabs * 2);
 	return (nb_tabs * 2);
 }
+
 size_t		Validator::compute_string_length(std::string str, int index, int limit)
 {
 	std::string::iterator	it;
@@ -401,8 +384,7 @@ size_t		Validator::compute_string_length(std::string str, int index, int limit)
 	}
 	return (ret);
 }
-// TODO: tout revoir (probleme d'affichage du bon nombre de caracteres
-// quand on a des \n \t dans la chaine affichee)
+
 void		Validator::print_stack_state(const int nb_already_printed)
 {
 	size_t	nb_bck;
@@ -426,6 +408,7 @@ void		Validator::print_stack_state(const int nb_already_printed)
 	print_ascii(this->content, this->cursor, nb_frt);
 	std::cout << CLR_GREEN << ")" << CLR_RESET << std::endl;
 }
+
 bool			Validator::print_lexer_rule(std::string &rule_name, const bool begin, const bool ret)
 {
 	size_t	nb_print;
@@ -454,6 +437,7 @@ bool			Validator::print_lexer_rule(std::string &rule_name, const bool begin, con
 	print_stack_state(nb_print);
 	return (ret);
 }
+
 bool	Validator::print_syntax_error_line_cursor(void)
 {
 	size_t	content_length;

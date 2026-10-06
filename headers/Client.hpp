@@ -33,7 +33,6 @@ class Client
         std::string  GetIP() const;
         std::string  GetNickname() const;
         std::string  GetUsername() const;
-        std::string  GetRealname() const;
 
 		void    SetFd(int fd);
         void    SetIpAdd(std::string IP);

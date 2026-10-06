@@ -19,4 +19,3 @@ std::ostream&	operator<<(std::ostream& os, Bot& bot)
 	os << bot.name << " (" << bot.socketFd << ")";
 	return (os);
 }
-

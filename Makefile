@@ -1,14 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: lbouchar <lbouchar@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/02/21 11:48:55 by picheval          #+#    #+#              #
-#    Updated: 2026/10/04 14:55:07 by lbouchar         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
 
 CC 					= c++
 CFLAGS				= -Wall -Wextra -Werror -std=c++98 -g3
@@ -36,8 +25,8 @@ BOTS_INCLUDES		= -I$(INC_FOLDER) \
 SRCS_RAW			= main.cpp \
 					  $(PARSING_FOLDER)Validator.cpp \
 					  $(PARSING_FOLDER)CommandValidator.cpp \
-					  channel.cpp \
-					  client.cpp \
+					  Channel.cpp \
+					  Client.cpp \
 					  Server.cpp \
 					  MessageIn.cpp \
 					  Error.cpp \

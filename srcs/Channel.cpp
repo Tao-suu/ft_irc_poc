@@ -1,4 +1,4 @@
-#include "channel.hpp"
+#include "Channel.hpp"
 
 /******************/
 /* CANONICAL FORM */
@@ -45,7 +45,6 @@ void Channel::JoinChannel(Client *client, std::string key)
         throw Error(*client, ERR_INVITEONLYCHAN(client->GetNickname(), _Name));
     AddClient(client);
     if (_Clients.size() == 1) _Operators.push_back(_Clients.back());
-    // MessageListClients(_Clients, DFL_JOIN(client->GetNickname(), _Name));
     MessageOut m0; m0.setMessage(PREFIX(client->GetNickname(), client->GetUsername(), client->GetIP()) + " JOIN " + _Name + SEPARATOR);
     for (size_t j = 0; j < _Clients.size(); j++) m0.addTarget(_Clients[j]->GetFd());
     _Server->push_message(m0);

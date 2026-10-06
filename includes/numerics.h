@@ -1,21 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   numerics.h                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/10/06 16:20:43 by laura            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef NUMERICS_H
 # define NUMERICS_H
 
 # include <string>
 
-// # define SEPARATOR										std::string("\n")
+// # define SEPARATOR								
 # define SEPARATOR										std::string("\r\n")
 # define PROGRAM_NAME									std::string("ft_irc")
 # define VERSION										std::string("1.0")
@@ -42,7 +31,6 @@
 # define RPL_ENDOFNAMES(client, channel)                std::string("366 ") + client + " " + channel + " :End of /NAMES list"
 
 /*****MSG default*******/
-// doc say send messsage but not give it so i create those
 # define DFL_JOIN(client, channel)                      std::string(client) + " is joining the channel " + channel
 # define DFL_KICK(client, target, channel, comment)     std::string(client) + " has kicked " + target + " to the channel " + channel + " " + comment
 # define DFL_PART(client, channel, reason)              std::string(client) + " leave channel " + channel + " " + reason

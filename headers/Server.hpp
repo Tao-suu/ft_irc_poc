@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include <map>
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -21,11 +20,11 @@
 #include <netdb.h>
 #include <stdio.h>
 
-#include "client.hpp"
+#include "Client.hpp"
 #include "CommandValidator.hpp"
 #include "Error.hpp"
 #include "numerics.h"
-#include "channel.hpp"
+#include "Channel.hpp"
 #include "MessageOut.hpp"
 #include "utils.h"
 

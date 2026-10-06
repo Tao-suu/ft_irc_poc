@@ -2,15 +2,10 @@
 
 void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 {
-	// std::cout << bot << " => " << senderNick << " => " << params << std::endl;
-
 	std::string	response, queryParam, query;
 	std::string	host = "api.openweathermap.org";
 	std::string	post = "80";
 	std::string	apiKey = "";
-
-	// Retrieve coords from location
-	// http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
 	std::string	city = (params.find(":") == 0 ? params.substr(1) : params);
 	queryParam = std::string("q=") + city;
 	query = std::string("/geo/1.0/direct?") + queryParam + std::string("&limit=1&appid=") + apiKey;
@@ -30,10 +25,7 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 		sendPrivmsg(bot, senderNick, "Invalid city name");
 		return ;
 	}
-	// std::cout << "City: " << city << " / lat: " << lat << " / lon: " << lon << std::endl;
 
-	// Retrieve weather from coords
-	// https://api.openweathermap.org/data/4.0/onecall/current?lat={lat}&lon={lon}&appid={API key}
 	queryParam = std::string("lat=") + lat + std::string("&lon=") + lon;
 	query = std::string("/data/4.0/onecall/current?") + queryParam + std::string("&appid=") + apiKey + std::string("&units=metric");
 	try {
@@ -42,7 +34,7 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 		sendPrivmsg(bot, senderNick, "Unable to contact weather service :(");
 		return ;
 	}
-	// std::cout << response << std::endl;
+	
 	std::string	timezone, dt, sunrise, sunset, temp, feels_like, pressure, humidity, clouds, wind_speed, wind_deg, mainW, description;
 	try {
 		extractFromString(timezone, response, "\"timezone\":\"", "\",");
@@ -68,10 +60,8 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 	sendPrivmsg(bot, senderNick, std::string("Temperature: ") + temp + std::string("C / FeelsLike: ") + feels_like + std::string("C"));
 	sendPrivmsg(bot, senderNick, std::string("Pressure: ") + pressure + std::string("hPa / Humidity: ") + humidity + std::string("% / Clouds: ") + clouds + std::string("%"));
 	sendPrivmsg(bot, senderNick, std::string("WindSpeed: ") + wind_speed + std::string("m/s / WindDirection: ") + wind_deg);
-
-	// {"lat":48.8589,"lon":2.32,"timezone":"Europe/Paris","timezone_offset":7200,"data":[{"dt":1791035918,"sunrise":1791006760,"sunset":1791048406,"temp":22.63,"feels_like":22.23,"pressure":1028,"humidity":49,"dew_point":11.38,"uvi":1.78,"clouds":93,"visibility":10000,"wind_speed":4.12,"wind_deg":10,"weather":[{"id":804,"main":"Clouds","description":"couvert","icon":"04d"}]}]}
-
 }
+
 void	chaty_bot(Bot &bot, std::string senderNick, std::string params)
 {
 	std::string	response, queryParam, query;
@@ -114,7 +104,6 @@ void	receiveDatas(Bot &bot)
 		std::string line = bot.receiveBuffer.substr(0, pos);
 		bot.receiveBuffer = bot.receiveBuffer.substr(pos + SEPARATOR.size(), bot.receiveBuffer.size() - (pos + SEPARATOR.size()));
 
-		// std::cout << line << std::endl;
 		if ((pos = line.find(WELCOME)) == 0) {
 			std::vector<std::string>	splitted = split(line, ' ');
 			std::cout << bot.name << " successfuly connected to " << splitted[splitted.size() - 2] << " !" << std::endl;
@@ -129,7 +118,7 @@ void	receiveDatas(Bot &bot)
 		else if ((pos = cmd.find(CHATY_BOT_SEP)) == 0)
 			chaty_bot(bot, senderNick, cmd.substr(pos + CHATY_BOT_SEP.size(), cmd.size() - (pos + CHATY_BOT_SEP.size())));
 		else
-			std::cerr << "BAD BOT CMD" << std::endl; // Impossible (sauf si le dev est en carton...)
+			std::cerr << "BAD BOT CMD" << std::endl; 
 	}
 }
 
@@ -164,11 +153,9 @@ void	startBots(std::vector<Bot> &bots)
 
 		for (size_t i = 0; i < pollFds.size(); i++)
 		{
-			if (pollFds[i].revents == 0) continue;					// Nothing append
-			if (pollFds[i].revents & POLLIN) receiveDatas(bots[i]);	// Can receive datas
-			if (pollFds[i].revents & POLLOUT) sendDatas(bots[i]);	// Can send datas
-
-			// Si poll reçoit une erreur, alors on kill tous les bots (vu qu'ils sont tous liés au même server)
+			if (pollFds[i].revents == 0) continue;					
+			if (pollFds[i].revents & POLLIN) receiveDatas(bots[i]);	
+			if (pollFds[i].revents & POLLOUT) sendDatas(bots[i]);	
 			if (pollFds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) throw std::string("Connection lost");
 		}
 	}
