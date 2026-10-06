@@ -28,9 +28,3 @@ void                            MessageOut::addTarget( int fd ) {
 }
 
 /******METHODS******/
-void                            MessageOut::send( void ) {
-    for (std::vector<int>::iterator it = targets_.begin(); it != targets_.end(); it++) {
-        ::send((*it), message_.c_str(), message_.size(), 0);
-    }
-}
-

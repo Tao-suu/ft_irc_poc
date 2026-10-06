@@ -48,7 +48,4 @@ public:
 	// Setters
 	void						setMessage( std::string message );
 	void						addTarget( int fd );
-
-	// Methods
-	void						send( void );
 };
