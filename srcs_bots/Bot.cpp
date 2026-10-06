@@ -20,13 +20,3 @@ std::ostream&	operator<<(std::ostream& os, Bot& bot)
 	return (os);
 }
 
-
-// Getters
-
-// Setters
-
-// Methods
-
-/*******************/
-/* Private methods */
-/*******************/

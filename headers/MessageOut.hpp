@@ -27,11 +27,7 @@ private:
 	std::string				message_;
 	std::vector<int>		targets_;
 
-	// Methods
-
 public:
-	// Attributes
-
 	// Constructors / Destructor
 	MessageOut( void );
 	MessageOut( std::string message, std::vector<int> clients = std::vector<int>() );

@@ -46,8 +46,8 @@ public:
     Server &operator=( const Server& o);
     ~Server();
 
-    void    init( void );
-    void    run ( void );
+    void                 init( void );
+    void                 run( void );
 
     int                 get_port( void ) const;
     const std::string&  get_password( void ) const;
@@ -62,29 +62,22 @@ public:
     void                broadcastToPeer( Client& cl, const std::string& message );
 
 private:
-    int             port_;
-    std::string     pass_;
-
-    int             servFd_;
-    sockaddr_in     addr_;
-
+    int                     port_;
+    std::string             pass_;
+    int                     servFd_;
+    sockaddr_in             addr_;
     std::vector<pollfd>     pollfds_;
     std::vector<int>        toRemove_;
     std::map<int, Client>   Clients_;
-
     std::vector<Channel>    Channels_;
-
-	CommandValidator	cv;
-
+	CommandValidator	    cv;
     std::deque<MessageOut>  message_stack;
 
     Server( void );
 	void				exec(MessageIn &msg, Client& sender);
-
 	void				pass(MessageIn &msg, Client& cl);
 	void				nick(MessageIn &msg, Client& cl);
 	void				user(MessageIn &msg, Client& cl);
-	
 	void				join(MessageIn& msg, Client& cl);
     void                topic(MessageIn& msg, Client& cl);
     void                list(MessageIn& msg, Client& cl);
@@ -94,8 +87,6 @@ private:
 	void				mode(MessageIn& msg, Client& cl);
 	void				privmsg(MessageIn& msg, Client& cl);
     void                ping(MessageIn& msg, Client& cl);
-    void                botWeather(MessageIn& msg, Client& cl);
-	void				bot(MessageIn& msg, Client& cl);
 
 	bool 				            is_nickname_exist(std::string nick);
 	void				            sendWelcome(Client &cl);

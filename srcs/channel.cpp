@@ -193,7 +193,6 @@ void Channel::RemoveKey()
     _Key = "";
 }
 
-
 /***********************/
 /*      TOPIC MODE    */
 /**********************/
@@ -286,7 +285,6 @@ std::string     Channel::get_namereply( void ) {
     }
     return ss.str();
 }
-
 
 bool            Channel::is_valid_name(const std::string& name) {
     if (name[0] != '#' || name.size() <= 1) return false;

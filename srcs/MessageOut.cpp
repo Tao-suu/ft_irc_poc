@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <sys/socket.h>
 
-
 /******CANONICAL******/
 MessageOut::MessageOut( void ): message_(), targets_() {}
 MessageOut::MessageOut( std::string message, std::vector<int> clients): message_(message), targets_(clients) {}
@@ -26,5 +25,3 @@ void                            MessageOut::setMessage( std::string message ) { 
 void                            MessageOut::addTarget( int fd ) { 
     if (std::find(targets_.begin(), targets_.end(), fd) == targets_.end()) { targets_.push_back(fd); }
 }
-
-/******METHODS******/

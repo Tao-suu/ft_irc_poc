@@ -60,14 +60,3 @@ std::ostream&	operator<<(std::ostream& os, MessageIn& msg)
 	}
 	return (os);
 }
-
-
-// Getters
-
-// Setters
-
-// Methods
-
-/*******************/
-/* Private methods */
-/*******************/

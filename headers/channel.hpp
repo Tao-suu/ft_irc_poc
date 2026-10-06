@@ -1,16 +1,16 @@
 #pragma once 
 
-// to organize
 # include "client.hpp"
+# include "Server.hpp"
+# include "numerics.h"
+# include "Error.hpp"
+
 # include <exception>
 # include <iostream>
 # include <vector>
 # include <algorithm>
 # include <sstream>
 # include <string>
-# include "Server.hpp"
-# include "numerics.h"
-# include "Error.hpp"
 # include <ctime>
 
 # define  MODE_INVITE_ONLY  (1 << 0)
@@ -92,44 +92,3 @@ class Channel
 
         static bool is_valid_name(const std::string& name);
 };        
-
-
-/******************/
-/*      GETTER    */
-/******************/ 
-//   std::string             getName() const;
-//         std::vector<Client*>    getClients() const;
-//         std::vector<Client*>    getInvitedClients() const;
-//         std::vector<Client*>    getOperators() const;
-//         unsigned int            getUserLimit() const;
-//         std::string             getKey() const;
-//         std::string             getTopic() const;
-// std::string Channel::getName() const
-// {
-//     return(_Name);
-// }
-// std::vector<Client*> Channel::getClients() const
-// {
-//     return(_Clients);
-// }
-// std::vector<Client*> Channel::getInvitedClients() const
-// {
-//     return(_Invitations);
-// }
-// std::vector<Client*> Channel::getOperators() const
-// {
-//     return(_Operators);
-// }
-// unsigned int Channel::getUserLimit() const
-// {
-//     return(_UserLimit);
-// }
-// std::string Channel::getKey() const
-// {
-//     return(_Key);
-// }
-// std::string Channel::getTopic() const
-// {
-//     return(_Topic);
-// }
-

@@ -35,8 +35,6 @@ class Client
         std::string  GetUsername() const;
         std::string  GetRealname() const;
 
-		// void		set_pass_ok(bool val);
-
 		void    SetFd(int fd);
         void    SetIpAdd(std::string IP);
         void    SetNickname(std::string nickname);

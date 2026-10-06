@@ -58,6 +58,9 @@ irssi
 /connect <ip> <port> <password>
 For example:
 /connect localhost 1234 mypassword
+then before the comman you should put a /
+For example:
+/JOIN
 
 4) IRC COMMANDS
 - PASS
@@ -152,40 +155,53 @@ For channels, the supported modes are:
 +t	or -t Topic protection : Only operators can change the topic
 +k	or -k Channel key :	A password is required to join the channel
 +o	or -o Operator : Gives or removes operator privileges
-+l	or -l User limit	: Sets the maximum number of users
-
++l	or -l User limit : Sets the maximum number of users
 
 5) BONUS
+
+- BOT
 Bots are clients, you need to launch them with
 make ircevbots
 ./ircbots localhost 1234 toto
-
-### // cle API (add how to put the key)
-
 Then in your first client terminal
 PRIVMSG <bot> <arg>
 
-- BOT WEATHER
+BOT WEATHER
 Requests weather information for a city.
 PRIVMSG WeatherBot <city>
 Example:
 PRIVMSG WeatherBot Paris
 
-- BOT CHATGPT
+BOT CHATGPT
 Sends a message to the ChatGPT-powered bot.
 PRIVMSG ChatyBot :<text>
 Example:
 PRIVMSG ChatyBot :Explain how IRC channels work ?
 
+- File transfert
+Only with IRSSI and 2 clients open
+sender :
+/dcc send <nickname> <path_to_file>
+receiver:
+/dcc get <nickname> <filename>
+For example:
+/dcc send moulinette /home/goinfre/ft_irc/README.md
+/dcc get norminet README.md
+
+6) CLOSE THE PROGRAMME
+server and nc: ^C
+IRSSI: /QUIT
+
 # RESOURCES
-IRC Documentation
 
 Modern IRC documentation:
 "https://modern.ircdocs.horse/?utm_source=chatgpt.com"
 
-ft_irc Channel and Command Management
+IRSSI documentation
+https://irssi.org/documentation/manual/
+
 Tutorial about implementing channels and command management for ft_irc:
-"https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b?utm_source=chatgpt.com"
+"https://medium.com/@mohamedsarda/ft-irc-channels-and-command-management-ff1ff3758a0b?utm_source=chatgpt.com"
 
 API ChatyBot https://console.groq.com/docs/overview 
 API WheatherBot https://openweathermap.org/api/one-call-4?collection=one_call_api 

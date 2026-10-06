@@ -19,13 +19,8 @@
 # include <iostream>
 
 class MessageIn {
-
-private:
-	// Attributes
-
-	// Methods
-
-public:
+	
+	public:
 	// Attributes
 	std::map<std::string, std::string>		tags;
 	std::string								cmdName;
@@ -40,13 +35,6 @@ public:
 
 	// Operators overload
 	MessageIn	&operator=(MessageIn const &other);
-
-	// Getters
-
-	// Setters
-
-	// Methods
-
 };
 
 std::ostream&	operator<<(std::ostream& os, MessageIn& msg);

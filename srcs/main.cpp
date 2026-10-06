@@ -1,7 +1,5 @@
 #include <iostream>
-
 #include "Server.hpp"
-
 
 bool args_valid(int argc, char **argv, int &port) {
     if (argc < 3) {
@@ -33,14 +31,11 @@ bool args_valid(int argc, char **argv, int &port) {
     return true;
 }
 
-
 int main( int argc, char **argv )
 {
     int     port;
     if (!args_valid(argc, argv, port)) return 1;
     Server  server(port, argv[2]);
-    // std::cout << server.get_ip() << std::endl;
-
     try
     {
         server.init();

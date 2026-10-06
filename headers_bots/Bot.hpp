@@ -9,11 +9,6 @@ typedef struct pollfd pollfd;
 
 class Bot {
 
-private:
-	// Attributes
-
-	// Methods
-
 public:
 	// Attributes
 	std::string					name;
@@ -28,13 +23,6 @@ public:
 
 	// Operators overload
 	Bot	&operator=(Bot const &other);
-
-	// Getters
-
-	// Setters
-
-	// Methods
-
 };
 
 std::ostream&	operator<<(std::ostream& os, Bot& msg);

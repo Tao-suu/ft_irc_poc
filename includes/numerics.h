@@ -6,7 +6,7 @@
 /*   By: laura <laura@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/01 15:46:56 by lbouchar          #+#    #+#             */
-/*   Updated: 2026/10/05 17:37:48 by laura            ###   ########.fr       */
+/*   Updated: 2026/10/06 16:20:43 by laura            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # define SEPARATOR										std::string("\r\n")
 # define PROGRAM_NAME									std::string("ft_irc")
 # define VERSION										std::string("1.0")
-# define MODE                                           std::string("klot")
+# define MODE                                           std::string("itkol kol")
 /*****SOURCE PREFIX*****/
 # define PREFIX(nick, user, host)                       std::string(":") + nick + "!" + user + "@" + host
 
@@ -86,7 +86,6 @@
 # define ERR_BADCHANNELKEY(client, channel)				std::string("475 ") + client + " " + channel + " :Cannot join channel - Bad channel key"
 # define ERR_BADCHANNELMASK(client, channel)			std::string("476 ") /*+ client*/ + " " + channel + " :Bad channel mask"
 # define ERR_CHANOPRIVSNEEDED(client, channel)          std::string("482 ") + client + " " + channel + " :You're not channel operator"
-
 
 /*****COMMAND ECHO*****/
 # define MSG_NICK(prefix, newnick)                      prefix + " NICK :" + newnick

@@ -17,8 +17,6 @@ Server& Server::operator=( const Server& o )
 }
 Server::~Server() {}
 
-
-
 void    Server::init( void )
 {
     servFd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -66,15 +64,14 @@ void    Server::run ( void )
         size_t  n = pollfds_.size();
         for (size_t i = 0; i < n; i++)
         {
-            if (pollfds_[i].revents == 0) continue;     //  le client/serveur n'a fait aucun action ou recu aucune action
-            
+            if (pollfds_[i].revents == 0) continue;
             if (pollfds_[i].fd == servFd_) {
-                if (pollfds_[i].revents & POLLIN) { acceptNewClient(); }     // Le serveur recoit un nouveau client
+                if (pollfds_[i].revents & POLLIN) { acceptNewClient(); }
                 continue ;
             }
-            if (pollfds_[i].revents & POLLIN) { handleClientData(pollfds_[i].fd); }   // Recuperer les donnees
-            if (pollfds_[i].revents & POLLOUT) { handleClientWrite(pollfds_[i].fd); }   // Recuperer les donnees
-            if (pollfds_[i].revents & (POLLHUP | POLLERR | POLLNVAL)) { toRemove_.push_back(pollfds_[i].fd); }   // Supprimer le client
+            if (pollfds_[i].revents & POLLIN) { handleClientData(pollfds_[i].fd); }
+            if (pollfds_[i].revents & POLLOUT) { handleClientWrite(pollfds_[i].fd); }   
+            if (pollfds_[i].revents & (POLLHUP | POLLERR | POLLNVAL)) { toRemove_.push_back(pollfds_[i].fd); }   
         }
 
         /*      Remove clients and close fd      */
@@ -118,19 +115,16 @@ void    Server::run ( void )
     }
 }
 
-
 int                 Server::get_port( void ) const {return port_;}
 const std::string&  Server::get_password( void ) const {return pass_;}
 const std::string   Server::get_ip( void ) const { return std::string(inet_ntoa(addr_.sin_addr)); }
 void                Server::push_message( const MessageOut& m ) { message_stack.push_front(m); }
-
 
 std::ostream&   operator<<(std::ostream& os, const Server& s)
 {
     os << "Serveur: port=" << s.get_port() << " | pass=" << s.get_password();
     return os;
 }
-
 
 void                Server::acceptNewClient( void )
 {
@@ -160,9 +154,6 @@ void                Server::handleClientData( int fd )
     std::memset(buffer, 0, 2048);
 
     ssize_t bytes = recv(fd, buffer, 2048, 0);
-
-    // std::cout << "client fd(" << fd << ") buffer_in += " << bytes << " bytes" << SEPARATOR;
-
     if (bytes <= 0) {toRemove_.push_back(fd); return ;}
     if (bytes > 0)  Clients_[fd]._in_buffer.append(buffer, bytes); 
 
@@ -253,7 +244,6 @@ void                Server::broadcastToPeer( Client& cl, const std::string& mess
     push_message(m);
 }
 
-
 Server::ServerException::ServerException( const std::string& message ): message_(message) {}
 const char* Server::ServerException::what() const throw() {return message_.c_str();}
 Server::ServerException::~ServerException() throw() {}
@@ -302,9 +292,6 @@ void                Server::send_all( void ) {
     }
 }
 
-
-
-
 /****************************/
 /*        IRC COMMAND       */
 /****************************/
@@ -317,11 +304,10 @@ void				Server::pass(MessageIn &msg, Client& cl) {
     cl.pass_done = true;
 	if (msg.args[0][0] != this->pass_)
         cl.pass_ok = false;
-		// throw Error(cl, ERR_PASSWDMISMATCH((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
     else
         cl.pass_ok = true;
     /* COMMAND CORE */
-    if (cl.user_ok && cl.nick_ok) sendWelcome(cl); // Login ended
+    if (cl.user_ok && cl.nick_ok) sendWelcome(cl);
 }
 
 void				Server::nick(MessageIn &msg, Client& cl) {
@@ -335,11 +321,11 @@ void				Server::nick(MessageIn &msg, Client& cl) {
 	
     /* COMMAND CORE */
     std::string oldNick = cl.GetNickname();
-    cl.SetNickname(msg.args[0][0]); // All case
-	if (cl.registered) {    // Change Nickname case
+    cl.SetNickname(msg.args[0][0]); 
+	if (cl.registered) {    
         broadcastToPeer(cl, MSG_NICK(PREFIX(oldNick, cl.GetUsername(), cl.GetIP()), msg.args[0][0]));
 	} else { cl.nick_ok = true; }
-	if (!cl.registered && cl.pass_done && cl.user_ok) // Login ended
+	if (!cl.registered && cl.pass_done && cl.user_ok) 
 		sendWelcome(cl);
 }
 
@@ -354,7 +340,7 @@ void				Server::user(MessageIn &msg, Client& cl) {
     cl.SetRealname(msg.args[3][0]);
     cl.SetUsername(msg.args[0][0]);
     cl.user_ok = true;
-    if (cl.pass_done && cl.nick_ok) sendWelcome(cl); // Login endeded
+    if (cl.pass_done && cl.nick_ok) sendWelcome(cl); 
 }
 
 void            Server::ping(MessageIn &msg, Client &cl) {
@@ -687,10 +673,3 @@ void            Server::part(MessageIn& msg, Client& cl)
         }
     }
 }
-
-/* WIP IPW PWj PIW IWP*/
-
-// void                Server::ping(MessageIn& msg, Client& cl) {
-//     if (msg.args.size() < 2)
-//             throw Error(cl, ERR_NEEDMOREPARAMS((cl.GetNickname().empty() ? "*" : cl.GetNickname()), "PING"));
-// }
