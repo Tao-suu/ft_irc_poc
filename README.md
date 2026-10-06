@@ -158,11 +158,12 @@ For channels, the supported modes are:
 +l	or -l User limit : Sets the maximum number of users
 
 5) BONUS
-We will give you the API keys on a USB to put in a #define in bots.h, for security reasons.
 
 - BOT
+We will give you the API keys on a USB to put in a #define in bots.h, for security reasons.
+
 Bots are clients, you need to launch them with
-make ircevbots
+make ircbots
 ./ircbots localhost 1234 toto
 Then in your first client terminal
 PRIVMSG <bot> <arg>
