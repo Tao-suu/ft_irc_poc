@@ -86,9 +86,9 @@ void    Server::run ( void )
             
             std::vector<int> peers;
             for (std::vector<Channel>::iterator chan_it = Channels_.begin(); chan_it != Channels_.end();) {
+                if (chan_it->IsClientInvited(&Clients_[fd])) chan_it->RemoveInvitation(&Clients_[fd]); 
                 if (chan_it->IsClientInChannel(&Clients_[fd])) {
                     for (std::vector<Client *>::iterator cit = chan_it->getClients().begin(); cit != chan_it->getClients().end(); cit++) {
-                        if (chan_it->IsClientInvited(*cit)) chan_it->RemoveInvitation(*cit); 
                         if ((*cit)->GetFd() != fd && std::find(peers.begin(), peers.end(), (*cit)->GetFd()) == peers.end()) peers.push_back((*cit)->GetFd());
                     }
                     chan_it->ExitClient(&Clients_[fd]);
@@ -210,6 +210,7 @@ void				Server::exec(MessageIn &msg, Client& sender)
         else if (cmdName == "MODE") mode(msg, sender);
         else if (cmdName == "INVITE") invite(msg, sender);
         else if (cmdName == "KICK") kick(msg, sender);
+        else if (cmdName == "CAP") {}
 		else throw Error(sender, ERR_UNKNOWCOMMAND((sender.GetNickname().empty() ? "*" : sender.GetNickname()), msg.cmdName));
 	} catch (Error &e) {
         e._msg += SEPARATOR;
@@ -229,9 +230,10 @@ void				Server::sendWelcome(Client &cl)
         
 	cl.registered = true;
     std::time_t datetime = std::time(NULL);
+    std::string stime = asctime(std::localtime(&datetime)); stime = stime.substr(0, stime.size() - 1);
     std::string     message = RPL_WELCOME(cl.GetNickname()) + "\r\n" +
                             RPL_YOURHOST(cl.GetNickname(), PROGRAM_NAME, VERSION) + "\r\n" +
-                            RPL_CREATED(cl.GetNickname(),std::asctime(std::localtime(&datetime)) ) + "\r\n" + 
+                            RPL_CREATED(cl.GetNickname(), stime) + "\r\n" + 
                             RPL_MYINFO(cl.GetNickname(), PROGRAM_NAME, VERSION, MODE) + "\r\n";
     std::vector<int>    targets; targets.push_back(cl.GetFd());
     message_stack.push_front(MessageOut(message, targets));                     
@@ -450,7 +452,6 @@ void            Server::topic(MessageIn& msg, Client& cl) {
     std::cout << msg.args.size() << SEPARATOR;
     if (msg.args.size() == 1)
     {
-        std::cout << "here" << SEPARATOR;
         MessageOut m; m.addTarget(cl.GetFd()); m.setMessage(chan_it->getTopic().empty() ? 
         RPL_NOTOPIC(cl.GetNickname(), chan_it->getName()) + SEPARATOR : 
         RPL_TOPIC(cl.GetNickname(), chan_it->getName(), chan_it->getTopic()) + SEPARATOR + RPL_TOPICWHOTIME(cl.GetNickname(), chan_it->getName(), chan_it->getAuthorTopic(), chan_it->getTopicTime()) + SEPARATOR 
@@ -651,6 +652,10 @@ void            Server::kick(MessageIn& msg, Client& cl) {
             MessageOut  m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
             this->push_message(m);
         }
+    }
+    if (chan_it->getClients().size() == 0) {
+        Channels_.erase(chan_it);
+        return ;
     }
 }
 
