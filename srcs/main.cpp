@@ -36,6 +36,11 @@ int main( int argc, char **argv )
     int     port;
     if (!args_valid(argc, argv, port)) return 1;
     Server  server(port, argv[2]);
+
+    signal(SIGINT, signal_handler);
+    signal(SIGQUIT, signal_handler);
+    signal(SIGPIPE, SIG_IGN);
+
     try
     {
         server.init();

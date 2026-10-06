@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include <string>
 
+
 Server::Server( void ): port_(0), pass_("") {}
 Server::Server( int port, std::string pass ): port_(port), pass_(pass) {}
 Server::Server( const Server& o ): port_(o.port_), pass_(o.pass_), servFd_(o.servFd_), addr_(o.addr_) {}
@@ -42,7 +43,7 @@ void    Server::run ( void )
 
     pollfds_.push_back(fd0);
 
-    while (1)
+    while (running)
     {
         /*      Setup of what we want to look     */
         for (size_t i = 0; i < pollfds_.size(); i++) {
@@ -112,6 +113,9 @@ void    Server::run ( void )
 
         /*      append message in client buffer     */
         send_all();          
+    }
+    for (size_t i = 0; i < pollfds_.size(); i++) {
+        close(pollfds_[i].fd);
     }
 }
 

@@ -18,3 +18,9 @@ bool            is_unsigned_int(const std::string& str) {
     if (::strcmp(str.c_str(), "2147483647") > 0) return false;
     return true;
 }
+
+volatile sig_atomic_t running = 1;
+void            signal_handler(int sig) {
+    (void)sig;
+    running = 0;
+}
