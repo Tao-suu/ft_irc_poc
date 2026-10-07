@@ -221,15 +221,17 @@ void				Server::exec(MessageIn &msg, Client& sender)
     }
 }
 
-void				Server::sendWelcome(Client &cl)
+void				Server::sendWelcome(Client &cl, std::string nick)
 {
-    if (!cl.pass_ok) {
-        std::vector<int> targets; targets.push_back(cl.GetFd());
-        message_stack.push_front(MessageOut(ERR_PASSWDMISMATCH("*") + SEPARATOR, targets));
-        cl.SetNickname(""); cl.SetRealname(""); cl.SetUsername(""); cl.nick_ok = false; cl.pass_done = false; cl.pass_ok = false; cl.user_ok = false;
+    if (is_nickname_exist(cl.GetNickname())) throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), nick));
+    try {
+        if (!cl.pass_ok) throw Error(cl, ERR_PASSWDMISMATCH("*"));
+    } catch (Error &e) {
+        MessageOut m; m.addTarget(e._client.GetFd()); m.setMessage(e._msg + SEPARATOR);
+        toRemove_.push_back(cl.GetFd());
         return ;
     }
-        
+
 	cl.registered = true;
     std::time_t datetime = std::time(NULL);
     std::string stime = asctime(std::localtime(&datetime)); stime = stime.substr(0, stime.size() - 1);
@@ -266,7 +268,7 @@ Server::ServerException::~ServerException() throw() {}
 
 bool 				Server::is_nickname_exist(std::string nick) {
 	for (std::map<int, Client>::iterator i = Clients_.begin(); i != Clients_.end(); i++)
-		if (to_upper_string((*i).second.GetNickname()) == to_upper_string(nick)) return true;
+		if (i->second.registered && to_upper_string((*i).second.GetNickname()) == to_upper_string(nick)) return true;
 	return false; 
 }
 bool                Server::is_channel_exist(std::string name) {
@@ -318,7 +320,7 @@ void				Server::pass(MessageIn &msg, Client& cl) {
     else
         cl.pass_ok = true;
     /* COMMAND CORE */
-    if (cl.user_ok && cl.nick_ok) sendWelcome(cl);
+    if (cl.user_ok && cl.nick_ok) sendWelcome(cl, "");
 }
 
 void				Server::nick(MessageIn &msg, Client& cl) {
@@ -327,8 +329,6 @@ void				Server::nick(MessageIn &msg, Client& cl) {
 		throw Error(cl, ERR_NONICKNAMEGIVEN((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	else if (msg.args[0][0].find(':') != std::string::npos || msg.args[0][0].find(' ') != std::string::npos)
 		throw Error(cl, ERR_ERRONEUSNICKNAME((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
-	else if (is_nickname_exist(msg.args[0][0]) && to_upper_string(msg.args[0][0]) != to_upper_string(cl.GetNickname()))
-		throw Error(cl, ERR_NICKNAMEINUSE((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
 	
     /* COMMAND CORE */
     std::string oldNick = cl.GetNickname();
@@ -337,7 +337,7 @@ void				Server::nick(MessageIn &msg, Client& cl) {
         broadcastToPeer(cl, MSG_NICK(PREFIX(oldNick, cl.GetUsername(), cl.GetIP()), msg.args[0][0]));
 	} else { cl.nick_ok = true; }
 	if (!cl.registered && cl.pass_done && cl.user_ok) 
-		sendWelcome(cl);
+		sendWelcome(cl, msg.args[0][0]);
 }
 
 void				Server::user(MessageIn &msg, Client& cl) {
@@ -351,7 +351,7 @@ void				Server::user(MessageIn &msg, Client& cl) {
     cl.SetRealname(msg.args[3][0]);
     cl.SetUsername(msg.args[0][0]);
     cl.user_ok = true;
-    if (cl.pass_done && cl.nick_ok) sendWelcome(cl); 
+    if (cl.pass_done && cl.nick_ok) sendWelcome(cl, ""); 
 }
 
 void            Server::ping(MessageIn &msg, Client &cl) {

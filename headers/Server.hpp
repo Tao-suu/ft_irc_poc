@@ -88,7 +88,7 @@ private:
     void                ping(MessageIn& msg, Client& cl);
 
 	bool 				            is_nickname_exist(std::string nick);
-	void				            sendWelcome(Client &cl);
+	void				            sendWelcome(Client &cl, std::string oldnick);
     void                            send_all( void );
 
     bool                            is_channel_exist(std::string name);
