@@ -146,7 +146,14 @@ void                Server::acceptNewClient( void )
     pollfds_.push_back(new_fd);
 
     Clients_[fd] = Client(fd);
-    Clients_[fd].SetIpAdd(std::string(inet_ntoa(addr.sin_addr)));
+
+    struct sockaddr_in tmp; socklen_t tmp_len = sizeof(tmp);
+    
+    std::string str_ip;
+    if (getsockname(fd, (struct sockaddr*)&tmp, &tmp_len) == 0)
+        str_ip = inet_ntoa(tmp.sin_addr);
+
+    Clients_[fd].SetIpAdd(str_ip);
 	if (pass_.empty())
 		Clients_[fd].pass_ok = true;
     std::cout << "new client fd = " << fd << "\taddr_ = " << Clients_[fd].GetIP() << SEPARATOR;
@@ -475,7 +482,7 @@ void            Server::invite(MessageIn& msg, Client& cl) {
     if (!cl.registered)
         throw Error(cl, ERR_NOTREGISTERED(cl.GetNickname()));
     if (msg.args.size() < 2)
-        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "INITE"));
+        throw Error(cl, ERR_NEEDMOREPARAMS(cl.GetNickname(), "INVITE"));
 
     std::vector<Channel>::iterator  chan_it = get_channel(msg.args[1][0]);
     if (chan_it == Channels_.end())
@@ -529,6 +536,7 @@ void            Server::mode(MessageIn& msg, Client& cl) {
 
         for (size_t i = 0; i < smode.size(); i++) {
             char c = smode[i];
+            std::cout << c << std::endl;
             bool changed = false;
             std::string param = "";
 

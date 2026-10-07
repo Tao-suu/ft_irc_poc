@@ -2,7 +2,7 @@
 #include "Server.hpp"
 
 bool args_valid(int argc, char **argv, int &port) {
-    if (argc < 3) {
+    if (argc < 3 || std::string(argv[2]).size() == 0) {
         std::cerr << "Too few args\n";
         return 0;
     }
@@ -27,6 +27,13 @@ bool args_valid(int argc, char **argv, int &port) {
         std::cerr << "port out of range\n";
         return false;
     }
+    std::string pw = argv[2];
+    for (size_t i = 0; i < pw.size(); i++) {
+        if (!::isalnum(pw[i])) {
+            std::cerr << "invalid charactere in password" << std::endl;
+            return false;
+        }
+    }
 
     return true;
 }
@@ -34,7 +41,7 @@ bool args_valid(int argc, char **argv, int &port) {
 int main( int argc, char **argv )
 {
     int     port;
-    if (!args_valid(argc, argv, port)) return 1;
+    if (!args_valid(argc, argv, port)) return 1;    
     Server  server(port, argv[2]);
 
     signal(SIGINT, signal_handler);
@@ -44,8 +51,6 @@ int main( int argc, char **argv )
     try
     {
         server.init();
-        std::cout << server.get_ip() << std::endl;
-        std::cout << server << std::endl;
         server.run();
     }
     catch(const std::exception& e)
