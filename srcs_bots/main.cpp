@@ -5,7 +5,7 @@ void	weather_bot(Bot &bot, std::string &senderNick, std::string params)
 	std::string	response, queryParam, query;
 	std::string	host = "api.openweathermap.org";
 	std::string	post = "80";
-	std::string	apiKey = "";
+	std::string	apiKey = KEY_WEATER_BOT;
 	std::string	city = (params.find(":") == 0 ? params.substr(1) : params);
 	queryParam = std::string("q=") + city;
 	query = std::string("/geo/1.0/direct?") + queryParam + std::string("&limit=1&appid=") + apiKey;
@@ -67,7 +67,7 @@ void	chaty_bot(Bot &bot, std::string senderNick, std::string params)
 	std::string	response, queryParam, query;
 	std::string	host = "api.groq.com";
 	std::string	post = "443";
-	std::string	apiKey = "";
+	std::string	apiKey = KEY_CHATY_BOT;
 	query = std::string("/openai/v1/chat/completions");
 	std::string BodyRequest = (params.find(":") == 0 ? params.substr(1) : params) + " (answer only with ascci characters from 1 to 127, without NUL, CR, LF)";
 	std::string body = "{\"messages\": [{\"role\": \"user\",\"content\": \"" + BodyRequest + "\"}],\"model\": \"openai/gpt-oss-120b\",\"temperature\": 1,\"max_completion_tokens\": 2048,\"top_p\": 1,\"stream\": false,\"reasoning_effort\": \"medium\",\"stop\": null}";

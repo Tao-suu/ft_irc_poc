@@ -159,8 +159,18 @@ For channels, the supported modes are:
 
 5) BONUS
 
+- File transfert
+Only with IRSSI and 2 clients open
+sender :
+/dcc send <nickname> <path_to_file>
+receiver:
+/dcc get <nickname> <filename>
+For example:
+/dcc send moulinette /home/goinfre/ft_irc/README.md
+/dcc get norminet README.md
+
 - BOT
-We will give you the API keys on a USB to put in a #define in bots.h, for security reasons.
+For security reasons, API keys must be put manuelly in bots.hpp.
 
 Bots are clients, you need to launch them with
 make ircbots
@@ -179,16 +189,6 @@ Sends a message to the ChatGPT-powered bot.
 PRIVMSG ChatyBot :<text>
 Example:
 PRIVMSG ChatyBot :Explain how IRC channels work ?
-
-- File transfert
-Only with IRSSI and 2 clients open
-sender :
-/dcc send <nickname> <path_to_file>
-receiver:
-/dcc get <nickname> <filename>
-For example:
-/dcc send moulinette /home/goinfre/ft_irc/README.md
-/dcc get norminet README.md
 
 6) CLOSE THE PROGRAMME
 server and nc: ^C

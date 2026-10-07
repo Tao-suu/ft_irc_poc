@@ -7,6 +7,9 @@
 
 typedef struct pollfd pollfd;
 
+# define KEY_WEATER_BOT std::string("");
+# define KEY_CHATY_BOT 	std::string("");
+
 class Bot {
 
 public:
