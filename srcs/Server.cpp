@@ -316,7 +316,7 @@ void				Server::pass(MessageIn &msg, Client& cl) {
 
 void				Server::nick(MessageIn &msg, Client& cl) {
 	/* ERR MANAGE */
-	if (msg.args.size() < 1 || msg.args[0].size() < 1)
+	if (msg.args.size() < 1 || msg.args[0].size() < 1 || msg.args[0][0].empty())
 		throw Error(cl, ERR_NONICKNAMEGIVEN((cl.GetNickname().empty() ? "*" : cl.GetNickname())));
 	else if (msg.args[0][0].find(':') != std::string::npos || msg.args[0][0].find(' ') != std::string::npos)
 		throw Error(cl, ERR_ERRONEUSNICKNAME((cl.GetNickname().empty() ? "*" : cl.GetNickname()), msg.args[0][0]));
